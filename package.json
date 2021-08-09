@@ -1,0 +1,40 @@
+{
+  "name": "enip_proxy",
+  "version": "0.1.0",
+  "description": "proxy to transform http request to enip request ",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gheprivate.intra.corp:robotic4nz/MARS_enip_proxy.git"
+  },
+  "keywords": [
+    "ethernet/ip",
+    "cip"
+  ],
+  "author": "nz84200",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@babel/preset-env": "^7.14.7",
+    "@babel/preset-typescript": "^7.14.5",
+    "@tsconfig/node14": "^1.0.1",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^16.3.1",
+    "@typescript-eslint/eslint-plugin": "^4.28.2",
+    "@typescript-eslint/parser": "^4.28.2",
+    "babel-jest": "^27.0.2",
+    "eslint": "^7.29.0",
+    "eslint-config-google": "^0.14.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.170",
+    "bit-vec": "^1.0.4",
+    "lodash": "^4.17.21"
+  }
+}
