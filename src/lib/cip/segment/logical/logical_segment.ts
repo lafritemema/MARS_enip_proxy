@@ -80,7 +80,7 @@ export class LogicalSegment extends Segment {
      * Build the buffer describing the segment metadata
      * @return {Buffer} the buffer describing the Segment
      */
-    public build() : Buffer {
+    public encode() : Buffer {
       const logicalCode = 32;
       const type = buildLogicalType(<LogicalTypeKey> this._type);
       const format = buildLogicalFormat(<LogicalFormatKey> this._format);

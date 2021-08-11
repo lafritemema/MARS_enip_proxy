@@ -88,11 +88,13 @@ export class Path {
    * Build a buffer describing the path
    * @return {Buffer} A buffer describing the path
    */
-  public build():Buffer {
+  public encode():Buffer {
     const bufferList = [];
 
+    bufferList.push(Buffer.from([this._segmentList.length]));
+
     for (const s of this._segmentList) {
-      bufferList.push(s.build());
+      bufferList.push(s.encode());
     }
 
     return Buffer.concat(bufferList);

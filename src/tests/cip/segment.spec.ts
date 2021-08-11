@@ -57,7 +57,7 @@ describe('Test segment interface', ()=> {
     const segment = new LogicalSegment(obj16._type,
         obj16._format,
         obj16._value);
-    const buffer = segment.build();
+    const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff16);
   });
   test('Build logical 32 bit buffer', ()=>{
@@ -65,7 +65,7 @@ describe('Test segment interface', ()=> {
     const segment = new LogicalSegment(obj32._type,
         obj32._format,
         obj32._value);
-    const buffer = segment.build();
+    const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff32);
   });
   test('Build logical 40 bit buffer', ()=>{
@@ -73,7 +73,7 @@ describe('Test segment interface', ()=> {
     const segment = new LogicalSegment(obj40._type,
         obj40._format,
         obj40._value);
-    const buffer = segment.build();
+    const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff40);
   });
 });
