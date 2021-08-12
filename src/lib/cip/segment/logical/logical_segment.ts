@@ -1,12 +1,11 @@
-
 import {Segment} from '../segment';
-import {LogicalTypeKey, LogicalType} from './logical_type';
-import {LogicalFormat, LogicalFormatKey} from './logical_format';
+import {LogicalType} from './logical_type';
+import {LogicalFormat,
+  _LogicalFormatPorcessor,
+  LogicalFormatObject} from './logical_format';
+import {SegmentType} from '../segment_type';
 
 // import {BitVector} from '../utils/bitvector';
-
-type LogicalFormatKeyNA = LogicalFormatKey|'NA';
-type LogicalTypeKeyNA = LogicalTypeKey|'NA';
 
 /**
  * Class represents a logical type segment
@@ -15,9 +14,10 @@ type LogicalTypeKeyNA = LogicalTypeKey|'NA';
  * @implement Segment
  */
 export class LogicalSegment extends Segment {
-    private _type : LogicalTypeKeyNA;
-    private _format: LogicalFormatKeyNA;
+    private _type : number;
+    private _format: number;
     private _value : number;
+    private _logicalProcessor:LogicalFormatObject|undefined;
 
     /**
      * @constructor
@@ -25,13 +25,19 @@ export class LogicalSegment extends Segment {
      * @param {string} format size type of the value encapsulated in the segment, default '8_BIT'
      * @param {number} value data encapsulated in the segment
      */
-    constructor(type:LogicalTypeKeyNA='NA',
-        format:LogicalFormatKeyNA='NA',
+    constructor(type:number=-1,
+        format:number=-1,
         value:number=0) {
-      super('LOGICAL');
+      checkTypeCode(type);
+      checkFormatCode(format);
+
+      super(SegmentType.LOGICAL);
       this._type = type;
       this._format = format;
       this._value = value;
+      this._logicalProcessor = this._format!=-1 ?
+        _LogicalFormatPorcessor[LogicalFormat[this._format]] :
+        undefined;
     }
 
     /**
@@ -39,7 +45,7 @@ export class LogicalSegment extends Segment {
      * @return {number} value size in byte
      */
     get dataSize() : number {
-      return this._format!='NA' ? LogicalFormat.getSize(this._format) : 0;
+      return this._logicalProcessor ? this._logicalProcessor.size : 0;
     }
 
     /**
@@ -47,8 +53,8 @@ export class LogicalSegment extends Segment {
      * @param {Buffer} metaBuffer metadata buffer
      */
     public parseMeta(metaBuffer : Buffer): void {
-      this._format = extractLogicalFormat(metaBuffer);
-      this._type = extractLogicalType(metaBuffer);
+      this._format = decodeLogicalFormat(metaBuffer);
+      this._type = decodeLogicalType(metaBuffer);
     }
 
     /**
@@ -56,8 +62,8 @@ export class LogicalSegment extends Segment {
      * @param {Buffer} dataBuffer
      */
     public parseData(dataBuffer:Buffer):void {
-      if (this._format!='NA') {
-        this._value = LogicalFormat.getValue(dataBuffer, this._format);
+      if (this._logicalProcessor != undefined) {
+        this._value = this._logicalProcessor.read.call(dataBuffer);
       } else {
         throw new Error(`ERROR: The logical segment format is not a defined.
         No enough informations to parse the data frame.`);
@@ -81,17 +87,47 @@ export class LogicalSegment extends Segment {
      * @return {Buffer} the buffer describing the Segment
      */
     public encode() : Buffer {
-      const logicalCode = 32;
-      const type = buildLogicalType(<LogicalTypeKey> this._type);
-      const format = buildLogicalFormat(<LogicalFormatKey> this._format);
-      const segmentCode = logicalCode | type | format;
+      if (this._type != -1 &&
+         this._format != -1 &&
+         this._value != 0 &&
+         this._logicalProcessor != undefined) {
+        const logicalCode = 0x20;
+        const type = encodeLogicalType(this._type);
+        const segmentCode = logicalCode | type | this._format;
 
-      const metaBuffer = Buffer.alloc(1);
-      metaBuffer.writeUInt8(segmentCode);
+        const metaBuffer = Buffer.alloc(1);
+        metaBuffer.writeUInt8(segmentCode);
 
-      const dataBufer = LogicalFormat.buildBuffer(this._value, this._format);
+        const dataBuffer = Buffer.alloc(this._logicalProcessor.size);
+        // @ts-ignore
+        this._logicalProcessor.write.call(dataBuffer, this._value);
 
-      return Buffer.concat([metaBuffer, dataBufer]);
+        return Buffer.concat([metaBuffer, dataBuffer]);
+      } else {
+        throw new Error('The segment is not conform to be encoded');
+      }
+    }
+
+    /**
+   * Convert the logical segment instance to JSON
+   * @return {object} the JSON representation
+   */
+    public toJSON():object {
+      if (
+        this._type != -1 &&
+        this._format != -1) {
+        return {
+          segment: 'LOGICAL',
+          type: LogicalType[this._type],
+          format: LogicalFormat[this._format],
+          value: this._value};
+      } else {
+        return {
+          segment: 'NOT CONFORM LOGICAL',
+          type: this._type,
+          format: this._format,
+          value: this._value};
+      }
     }
 }
 
@@ -100,19 +136,14 @@ export class LogicalSegment extends Segment {
  * @param {Buffer} metaBuffer metadata frame
  * @return {number} a numeric code describing the logical segment type
  */
-function extractLogicalType(metaBuffer:Buffer) : LogicalTypeKey {
-  // apply a binary filter (000111000)
+function decodeLogicalType(metaBuffer:Buffer) : number {
+  // apply a binary filter (00011100)
   // and a right shift of 2
   // to get the logical type (bit 4 to 6 of buffer)
-  const ltcode = (metaBuffer.readUInt8() & 28) >>> 2;
-  const type = LogicalType[ltcode];
+  const ltcode = (metaBuffer.readUInt8() & 0x1c) >>> 2;
+  checkTypeCode(ltcode);
 
-  if (type == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The logical segment type <${ltcode}> is not a available logical segment type`);
-  }
-
-  return <LogicalTypeKey>LogicalType[ltcode];
+  return ltcode;
 }
 
 /**
@@ -120,40 +151,42 @@ function extractLogicalType(metaBuffer:Buffer) : LogicalTypeKey {
  * @param {Buffer} metaBuffer metadata frame
  * @return {number} a numeric code describing the logical segment format
 */
-function extractLogicalFormat(metaBuffer:Buffer) : LogicalFormatKey {
+function decodeLogicalFormat(metaBuffer:Buffer) : number {
   // apply a binary filter (00000011)
   // to get the logical format (bit 7 and 8 of buffer)
   const lfcode = metaBuffer.readUInt8() & 3;
-  const format = LogicalFormat.getType(lfcode);
+  checkFormatCode(lfcode);
 
-  if (format == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The logical segment format <${lfcode}> is not a available logical segment format`);
-  }
-
-  return <LogicalFormatKey>LogicalFormat.getType(lfcode);
-}
-
-/**
- * Build the logical type code for metadata frame generation
- * @param {LogicalTypeKey} type logical segment type
- * @return {number} code for metadata frame generation
- */
-function buildLogicalType(type:LogicalTypeKey):number {
-  const ltcode = LogicalType[type];
-  return ltcode << 2;
-}
-
-/**
- * Build the logical type code for metadata frame generation
- * @param {LogicalFormateKey} format logical segment type
- * @return {number} code for metadata frame generation
- */
-function buildLogicalFormat(format:LogicalFormatKey):number {
-  const lfcode = LogicalFormat.getCode(format);
-
-  if (lfcode==undefined) {
-    throw new Error(`Error: the logical format <${format}> is not available.`);
-  }
   return lfcode;
+}
+
+/**
+ * Build the logical type code for metadata frame generation
+ * @param {number} typeCode logical segment type
+ * @return {number} code for metadata frame generation
+ */
+function encodeLogicalType(typeCode:number):number {
+  return typeCode << 2;
+}
+
+/**
+ * Check if the Logical Segment Format code is conform
+ * @param {number} formatCode format code
+ */
+function checkFormatCode(formatCode : number) :void {
+  if (LogicalFormat[formatCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The logical segment format <${formatCode}> is not a available logical segment format`);
+  }
+}
+
+/**
+ * Check if the Logical Segment Type code is conform
+ * @param {number} typeCode type code
+ */
+function checkTypeCode(typeCode : number) :void {
+  if (LogicalType[typeCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The logical segment format <${typeCode}> is not a available logical segment format`);
+  }
 }

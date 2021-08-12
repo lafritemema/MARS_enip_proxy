@@ -4,8 +4,6 @@
  * Constant to enumerate each segement logical type
  */
 
-export type LogicalTypeKey = keyof typeof LogicalType
-
 export enum LogicalType{
     CLASS_ID=0,
     INSTANCE_ID=1,

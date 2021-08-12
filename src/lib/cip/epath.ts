@@ -4,9 +4,9 @@
 import * as SEGMENT from './segment';
 
 /**
- * @class Path
+ * @class EPath
  */
-export class Path {
+export class EPath {
   private _segmentList:SEGMENT.Segment[];
 
   /**
@@ -20,9 +20,9 @@ export class Path {
   /**
    * tee
    * @param {Buffer} pathBuffer : hex buffer to parse
-   * @return {Path} Path object
+   * @return {Path} EPath object
    */
-  public static parse(pathBuffer:Buffer): Path {
+  public static parse(pathBuffer:Buffer): EPath {
     // get only the 3 higher bits describing the segment to get the segment type
     // to obtain the type code
 
@@ -44,11 +44,11 @@ export class Path {
       cursor += typedSegment.dataSize+1;
     }
 
-    return new Path(segments);
+    return new EPath(segments);
   }
 
   /**
-   * Get the number of segments contained in the Path
+   * Get the number of segments contained in the EPath
    * @return {number} number of segments
    */
   public get lenght() : number {
@@ -64,7 +64,7 @@ export class Path {
   // }
 
   /**
-   * Get the segment at a specified index in the Path
+   * Get the segment at a specified index in the EPath
    * @param {number} index segment index
    * @return {Segment} the segment at the specified index
    */
@@ -98,5 +98,12 @@ export class Path {
     }
 
     return Buffer.concat(bufferList);
+  }
+  /**
+   * Convert the epath instance to JSON
+   * @return {object} the JSON representation
+   */
+  public toJSON():object {
+    return this._segmentList.map((s)=>s.toJSON());
   }
 }

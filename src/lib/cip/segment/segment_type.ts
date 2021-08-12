@@ -2,8 +2,8 @@
 
 import {LogicalSegment} from './logical/logical_segment';
 
-export type TypeKeys = keyof typeof Type;
-export enum Type {
+export type SegmentTypeKeys = keyof typeof SegmentType;
+export enum SegmentType {
   // PORT=0,
   LOGICAL=1
     /* NETWORK=2,
@@ -19,7 +19,7 @@ export enum Type {
 * Constant to enumerate each segment type
 * and the Object herited from segment associated
 */
-export const TypeObject = {
+export const SegmentTypeObject = {
   // PORT:null, // not implented from now
   LOGICAL: LogicalSegment,
   /* NETWORK:null, // not implented from now

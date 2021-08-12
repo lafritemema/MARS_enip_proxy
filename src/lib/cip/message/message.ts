@@ -1,53 +1,42 @@
-import {Path} from './epath';
+import {Status} from '../../enip';
+import {EPath} from '../epath';
+import {MessageType} from './message_type';
 import {Service} from './service';
 
 /**
- * Class describing a CIP message
- * @class
+ * abstract class describing a CIP message
+ * @class Message
  */
-export class Message {
-    private _service : number;
-    private _type : number;
-    private _path : Path | undefined;
-    private _data : Buffer;
-    private _status : number | undefined;
-    private _addStatus : Buffer | undefined;
+export abstract class Message {
+    protected _service : number;
+    protected _type : number;
 
     /**
      * Message object constructor
      * @param {number} type type of message => REQUEST or RESPONSE
      * @param {number} service service used
-     * @param {Path|undefined} path object path
-     * @param {Buffer} data buffer describing the data
-     * @param {number} status status for response
-     * @param {Buffer} addStatus additionnal status buffer
      */
-    public constructor(type:number,
-        service:number,
-        path?:Path,
-        data:Buffer=Buffer.alloc(0), //empty buffer by default
-        status?:number,
-        addStatus?:Buffer) {
+    public constructor(type:number, service:number) {
+      checkTypeCode(type);
+      checkServiceCode(service);
+
       this._type = type;
       this._service = service;
-      this._path = path;
-      this._status = status;
-      this._data = data;
-      this._addStatus = addStatus;
     }
 
     /**
      * get the message service
-     * @return {string} message service
+     * @return {number} message service
      */
-    public getService() : string {
-      return Service[this._service];
+    public get service() : number {
+      return this.service;
     }
     /**
      * set the message service
      * @param {number} service message service
      */
-    public setService(service:number) {
+    public set service(service:number) {
+      checkServiceCode(service);
       this._service = service;
     }
 
@@ -55,31 +44,16 @@ export class Message {
      * get the message type
      * @return {string} message type ('RESPONSE' or 'REQUEST')
      */
-    public getType():string {
-      return this._type == 1 ? 'RESPONSE' : 'REQUEST';
-    }
-
-    /**
-     * get the message path
-     * @return {Path} the message path
-     */
-    public getPath():Path | undefined {
-      return this._path;
+    public get type():number {
+      return this._type;
     }
     /**
-     * Set the message path
-     * @param {Path} path message path
+     * set the message type
+     * @param {number} type message type
      */
-    public setPath(path:Path) {
-      this._path = path;
-    }
-
-    /**
-     * Set the message data
-     * @param {number} data message data
-     */
-    public set data(data:Buffer) {
-      this._data = data;
+    public set type(type:number) {
+      checkTypeCode(type);
+      this._type=type;
     }
 
     /**
@@ -93,37 +67,21 @@ export class Message {
     /**
      * Parse the CIP message buffer
      * @param {Buffer} buffer buffer describing the cip message
-     * @return {Message} a message objet
+     * @return {Message} a Message instance
      */
-    public parse(buffer:Buffer) {
-      let path = undefined;
-      let data = null;
-      let status = undefined;
-      let addStatus = undefined;
-
+    public static parse(buffer:Buffer) : Message {
       const type = extractType(buffer.readUInt8(0));
       const service = extractService(buffer.readUInt8(0));
 
-      if (type == 0) // if type => Request
-      {
-        const pathSize = buffer.readUInt8(1);
-        const pathBuffer = buffer.slice(2, 2 + (pathSize + 2) + 1);
-        path = Path.parse(pathBuffer);
-        data = buffer.slice(2 + (pathSize + 2) + 1);
+      checkTypeCode(type);
+      checkServiceCode(service);
 
-        return new Message(type, service, path, data);
-      } else { // else Response message
-        // const reserved = buffer.readUInt8(1); // reserved shall be 00
-        status = buffer.readUInt8(2);
-        const addStatusSize = buffer.readUInt8(3);
-        if (addStatusSize>0) {
-          addStatus = buffer.slice(4, 4+(addStatusSize*2)+ 1);
-          data = buffer.slice(4+(addStatusSize*2)+ 1);
-        } else {
-          data = buffer.slice(4);
-        }
+      const dataBuffer = buffer.slice(1);
 
-        return new Message(type, service, path, data, status, addStatus);
+      if (type == MessageType.REPONSE) {
+        return ResponseMessage._parseResponse(service, dataBuffer);
+      } else {
+        return RequestMessage._parseRequest(service, dataBuffer);
       }
     }
 }
@@ -147,4 +105,224 @@ function extractType(code:number) : number {
 function extractService(code:number) {
   // apply a filter 01111111
   return code & 0x7f;
+}
+
+/**
+ * Check if the Message Type code is conform
+ * @param {number} typeCode type code
+ */
+function checkTypeCode(typeCode:number) {
+  if (MessageType[typeCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The message type <${typeCode}> is not an available message type`);
+  }
+}
+
+/**
+ * Check if the Message Type code is conform
+ * @param {number} serviceCode type code
+ */
+function checkServiceCode(serviceCode:number) {
+  if (Service[serviceCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The message service <${serviceCode}> is not an available message service`);
+  }
+}
+
+/**
+ * class describing a CIP request message
+ * @class RequestMessage
+ */
+export class RequestMessage extends Message {
+  private _path : EPath;
+  private _data : Buffer;
+
+  /**
+   * Request message constructor
+   * @param {number} service service used
+   * @param {EPath} path object path
+   * @param {Buffer} data buffer describing the data
+   */
+  public constructor(service:number,
+      path:EPath,
+      data:Buffer=Buffer.alloc(0)) {// empty buffer by default
+    super(MessageType.REQUEST, service);
+    this._path = path;
+    this._data = data;
+  }
+
+  /**
+     * get the message path
+     * @return {EPath} the message path
+     */
+  public get epath():EPath {
+    return this._path;
+  }
+
+  /**
+   * Set the message path
+   * @param {EPath} path message path
+   */
+  public set epath(path:EPath) {
+    this._path = path;
+  }
+
+  /**
+   * Set the message data
+   * @param {Buffer} data message data
+   */
+  public set data(data:Buffer) {
+    this._data = data;
+  }
+
+  /**
+   * Get the message data
+   * @param {number} data message data
+   */
+  public get data():Buffer {
+    return this._data;
+  }
+
+  /**
+   * Parse the request part of the CIP message buffer
+   * @param {number} service message service code
+   * @param {Buffer} requestBuffer buffer describing the cip message
+   * @return {Message} a Message instance
+   */
+  public static _parseRequest(service:number,
+      requestBuffer:Buffer) : RequestMessage {
+    const pathSize = requestBuffer.readUInt8(0);
+    const pathBuffer = requestBuffer.slice(1, 1+(pathSize*2)+1);
+
+    const path = EPath.parse(pathBuffer);
+    const data = requestBuffer.slice(1+(pathSize * 2)+1);
+
+    return new RequestMessage(service, path, data);
+  }
+
+  /**
+   * Convert the request message instance to JSON
+   * @return {object} a message JSON representation
+   */
+  public toJSON() {
+    return {
+      type: MessageType[this._type],
+      service: Service[this._service],
+      path: this._path.toJSON(),
+      data: this._data.toString('hex'),
+    };
+  }
+}
+
+/**
+ * class describing a CIP response message
+ * @class ResponseMessage
+ */
+export class ResponseMessage extends Message {
+  private _data : Buffer;
+  private _status : number;
+  private _addStatus : Buffer;
+
+  /**
+   * Response message constructor
+     * @param {number} service service used
+     * @param {number} status status for response
+     * @param {Buffer} data buffer describing the data
+     * @param {Buffer} addStatus additionnal status buffer
+     */
+  public constructor(service:number,
+      status:number,
+      data:Buffer=Buffer.alloc(0),
+      addStatus:Buffer=Buffer.alloc(0)) { // empty buffer by default
+    super(MessageType.REPONSE, service);
+    checkStatusCode(status);
+
+    this._data = data;
+    this._status = status;
+    this._addStatus = addStatus;
+  }
+
+  /**
+   * Set the message data
+   * @param {Buffer} data message data
+   */
+  public set data(data:Buffer) {
+    this._data = data;
+  }
+
+  /**
+   * Get the message data
+   * @param {number} data message data
+   */
+  public get data():Buffer {
+    return this._data;
+  }
+
+  /**
+   * Set the message status
+   * @param {number} status message status
+   */
+  public set status(status:number) {
+    checkStatusCode(status);
+    this._status = status;
+  }
+
+  /**
+   * Get the message status
+   * @param {number} status message status
+   */
+  public get status():number {
+    return this._status;
+  }
+
+  /**
+   * Parse the request part of the CIP message buffer
+   * @param {number} service message service code
+   * @param {Buffer} responseBuffer buffer describing the cip message
+   * @return {Message} a Message instance
+   */
+  public static _parseResponse(service:number,
+      responseBuffer:Buffer) : ResponseMessage {
+    // const reserved = buffer.readUInt8(0); // reserved shall be 00
+    const status = responseBuffer.readUInt8(1);
+    const addStatusSize = responseBuffer.readUInt8(2);
+    let addStatus = undefined;
+    let data = null;
+
+    if (addStatusSize>0) {
+      addStatus = responseBuffer.slice(3, 3+(addStatusSize*2)+1);
+      data = responseBuffer.slice(3+(addStatusSize*2)+1);
+    } else {
+      data = responseBuffer.slice(3);
+    }
+
+    return new ResponseMessage(service, status, data, addStatus);
+  }
+
+  /**
+   * Convert the response message instance to JSON
+   * @return {object} a message JSON representation
+   */
+  public toJSON() {
+    return {
+      type: MessageType[this._type],
+      service: Service[this._service],
+      // @ts-ignore
+      status: Status[this._status],
+      addStatus: this._addStatus.toString('hex'),
+      data: this._data.toString('hex'),
+    };
+  }
+}
+
+/**
+ * Check if the Message Type code is conform
+ * @param {number} statusCode type code
+ */
+function checkStatusCode(statusCode:number) {
+  // @ts-ignore
+  if (Status[statusCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The message status <${statusCode}> is not an available message status`);
+  }
 }

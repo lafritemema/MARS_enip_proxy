@@ -1,25 +1,24 @@
 
 // import * as _ from 'lodash';
 
-import {TypeKeys} from './segment_type';
-
 /**
  * @class Segment
  * @abstract
  */
 export abstract class Segment {
-    private _stype:TypeKeys;
+    private _stype:number;
     /**
      * test
      * @param {SegmentTypeKeys} stype test
      */
-    protected constructor(stype:TypeKeys) {
+    protected constructor(stype:number) {
       this._stype = stype;
     }
     public abstract get dataSize():number;
     public abstract parseMeta(metaBuffer:Buffer):void;
     public abstract parseData(dataBuffer:Buffer):void;
+    public abstract encode():Buffer;
+    public abstract toJSON():object;
     // @ts-ignore
     public static initialise(metaBuffer:Buffer):Segment;
-    public abstract build():Buffer;
 }
