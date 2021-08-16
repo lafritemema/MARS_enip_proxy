@@ -1,5 +1,5 @@
 import {Segment} from './segment';
-import {Type, TypeKeys, TypeObject} from './segment_type';
+import {SegmentType, SegmentTypeObject, SegmentTypeKeys} from './segment_type';
 import {LogicalSegment} from './logical/logical_segment';
 
 
@@ -12,14 +12,9 @@ import {LogicalSegment} from './logical/logical_segment';
 function parseMeta(metaBuffer:Buffer) : Segment {
   const stcode: number = extractType(metaBuffer);
 
-  const stype: string = Type[stcode];
-  // if no string linked, raise an error
-  if (stype == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The segment type <${stcode}> is not a available segment type`);
-  }
+  checkSegmentType(stcode);
 
-  const segment:Segment= TypeObject[<TypeKeys> stype]
+  const segment:Segment= SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]]
       .initialize(metaBuffer);
   return segment;
 }
@@ -32,6 +27,18 @@ function parseMeta(metaBuffer:Buffer) : Segment {
 function extractType(metaBuffer:Buffer):number {
   // bit shift right to get only the value of 3 first bits.
   return metaBuffer.readUInt8() >>> 5;
+}
+
+/**
+ * Check if the Logical Segment Format code is conform
+ * @param {number} typeCode format code
+ */
+function checkSegmentType(typeCode:number):void {
+  // if no string linked, raise an error
+  if (SegmentType[typeCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The segment type <${typeCode}> is not a available segment type`);
+  }
 }
 
 

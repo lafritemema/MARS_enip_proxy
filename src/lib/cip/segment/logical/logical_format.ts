@@ -14,9 +14,9 @@ export interface LogicalFormatObject{
  * a LogicalFormatObject is associated for each type
  */
 export enum LogicalFormat {
-  '8_BIT' = 0,
-  '16_BIT' = 1,
-  '32_BIT' = 2,
+  'BIT_8' = 0,
+  'BIT_16' = 1,
+  'BIT_32' = 2,
   'RESERVED' = 3
 }
 
@@ -26,13 +26,13 @@ export enum LogicalFormat {
  * according logical segment type 
  */
 export const _LogicalFormatPorcessor: Record<string, LogicalFormatObject> = {
-  '8_BIT': {size: 1,
+  'BIT_8': {size: 1,
     read: Buffer.prototype.readUInt8,
     write: Buffer.prototype.writeUInt8},
-  '16_BIT': {size: 2,
+  'BIT_16': {size: 2,
     read: Buffer.prototype.readUInt16LE,
     write: Buffer.prototype.writeUInt16LE},
-  '32_BIT': {size: 4,
+  'BIT_32': {size: 4,
     read: Buffer.prototype.readUInt32LE,
     write: Buffer.prototype.writeUInt32LE},
   'RESERVED': {size: 0,

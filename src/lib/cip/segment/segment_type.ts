@@ -2,7 +2,8 @@
 
 import {LogicalSegment} from './logical/logical_segment';
 
-export type SegmentTypeKeys = keyof typeof SegmentType;
+export type SegmentTypeKeys = keyof typeof SegmentTypeObject;
+
 export enum SegmentType {
   // PORT=0,
   LOGICAL=1

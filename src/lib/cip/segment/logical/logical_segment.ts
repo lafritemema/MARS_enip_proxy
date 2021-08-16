@@ -28,8 +28,8 @@ export class LogicalSegment extends Segment {
     constructor(type:number=-1,
         format:number=-1,
         value:number=0) {
-      checkTypeCode(type);
-      checkFormatCode(format);
+      // checkTypeCode(type);
+      // checkFormatCode(format);
 
       super(SegmentType.LOGICAL);
       this._type = type;
@@ -53,8 +53,17 @@ export class LogicalSegment extends Segment {
      * @param {Buffer} metaBuffer metadata buffer
      */
     public parseMeta(metaBuffer : Buffer): void {
-      this._format = decodeLogicalFormat(metaBuffer);
-      this._type = decodeLogicalType(metaBuffer);
+      const fcode = decodeLogicalFormat(metaBuffer);
+      checkFormatCode(fcode);
+
+      const lcode = decodeLogicalType(metaBuffer);
+      checkTypeCode(lcode);
+
+      this._format = fcode;
+      this._type = lcode;
+
+      // eslint-disable-next-line max-len
+      this._logicalProcessor = _LogicalFormatPorcessor[LogicalFormat[this._format]];
     }
 
     /**
