@@ -1,7 +1,7 @@
-import {Status} from '../../enip';
+import {Status} from '../../cip/message/response_status';
 import {EPath} from '../epath';
 import {MessageType} from './message_type';
-import {Service} from './service';
+import {Service} from './message_service';
 
 /**
  * abstract class describing a CIP message
@@ -84,6 +84,7 @@ export abstract class Message {
         return RequestMessage._parseRequest(service, dataBuffer);
       }
     }
+    public abstract toJSON():object;
 }
 
 /**
@@ -94,7 +95,7 @@ export abstract class Message {
 function extractType(code:number) : number {
   // apply a filter 10000000
   // and a right shift of 7
-  return (code & 80) >>> 7;
+  return (code & 128) >>> 7;
 }
 
 /**
@@ -319,7 +320,7 @@ export class ResponseMessage extends Message {
  * Check if the Message Type code is conform
  * @param {number} statusCode type code
  */
-function checkStatusCode(statusCode:number) {
+function checkStatusCode(statusCode:number):void {
   // @ts-ignore
   if (Status[statusCode] == undefined) {
     // eslint-disable-next-line max-len
