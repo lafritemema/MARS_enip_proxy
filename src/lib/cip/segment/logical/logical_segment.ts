@@ -44,8 +44,16 @@ export class LogicalSegment extends Segment {
      * Get the segment value size in bytes
      * @return {number} value size in byte
      */
-    get dataSize() : number {
+    get dataLength() : number {
       return this._logicalProcessor ? this._logicalProcessor.size : 0;
+    }
+
+    /**
+     * Get the segment size in bytes
+     * @return {number} value size in byte
+     */
+    get length() : number {
+      return this._logicalProcessor ? this._logicalProcessor.size + 1 : 0;
     }
 
     /**

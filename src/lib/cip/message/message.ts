@@ -61,6 +61,7 @@ export abstract class Message {
      * @return {Buffer} buffer describing the message
      */
     public encode():Buffer {
+      // TODO: Create function to Message encoding
       return Buffer.from([0x00]);
     }
 
@@ -78,13 +79,14 @@ export abstract class Message {
 
       const dataBuffer = buffer.slice(1);
 
-      if (type == MessageType.REPONSE) {
+      if (type == MessageType.RESPONSE) {
         return ResponseMessage._parseResponse(service, dataBuffer);
       } else {
         return RequestMessage._parseRequest(service, dataBuffer);
       }
     }
     public abstract toJSON():object;
+    public abstract get length():number;
 }
 
 /**
@@ -185,6 +187,14 @@ export class RequestMessage extends Message {
   }
 
   /**
+   * Get the message lenght in byte
+   * @return {number} message length in byte
+   */
+  public get length():number {
+    return this._data.length + this._path.lenght + 2;
+  }
+
+  /**
    * Parse the request part of the CIP message buffer
    * @param {number} service message service code
    * @param {Buffer} requestBuffer buffer describing the cip message
@@ -198,6 +208,7 @@ export class RequestMessage extends Message {
     const path = EPath.parse(pathBuffer);
     const data = requestBuffer.slice(1+(pathSize * 2)+1);
 
+    // ENHANCE : implement BufferIterator
     return new RequestMessage(service, path, data);
   }
 
@@ -212,6 +223,23 @@ export class RequestMessage extends Message {
       path: this._path.toJSON(),
       data: this._data.toString('hex'),
     };
+  }
+
+  /**
+   * Encode the RequestMessage instance in a Buffer
+   * @return {Buffer} a buffer describing the RequestMessage instance
+   */
+  public encode():Buffer {
+    // encode a metaBuffer with service + path size
+    const metaBuffer = Buffer.alloc(2);
+    metaBuffer.writeUInt8(0, this._service);
+    metaBuffer.writeUInt8(1, this._path.lenght);
+
+    // get the epath buffer
+    const epathBuffer = this._path.encode();
+
+    // return buffer with metadata + epath data + data
+    return Buffer.concat([metaBuffer, epathBuffer, this._data]);
   }
 }
 
@@ -235,7 +263,7 @@ export class ResponseMessage extends Message {
       status:number,
       data:Buffer=Buffer.alloc(0),
       addStatus:Buffer=Buffer.alloc(0)) { // empty buffer by default
-    super(MessageType.REPONSE, service);
+    super(MessageType.RESPONSE, service);
     checkStatusCode(status);
 
     this._data = data;
@@ -277,6 +305,14 @@ export class ResponseMessage extends Message {
   }
 
   /**
+   * Get the message lenght in byte
+   * @return {number} message length in byte
+   */
+  public get length():number {
+    return this._data.length + this._addStatus.length + 4;
+  }
+
+  /**
    * Parse the request part of the CIP message buffer
    * @param {number} service message service code
    * @param {Buffer} responseBuffer buffer describing the cip message
@@ -297,6 +333,7 @@ export class ResponseMessage extends Message {
       data = responseBuffer.slice(3);
     }
 
+    // ENHANCE : implement BufferIterator
     return new ResponseMessage(service, status, data, addStatus);
   }
 
@@ -313,6 +350,22 @@ export class ResponseMessage extends Message {
       addStatus: this._addStatus.toString('hex'),
       data: this._data.toString('hex'),
     };
+  }
+
+  /**
+   * Encode the ResponseMessage instance in a Buffer
+   * @return {Buffer} a buffer describing the ResponseMessage instance
+   */
+  public encode():Buffer {
+    // encode metabuffer with service + reserved octet + status + size additionnal status
+    // size 4 byte
+    const metaBuffer = Buffer.alloc(4);
+    metaBuffer.writeUInt8(0, this._service);
+    metaBuffer.writeUInt8(2, this._status);
+    metaBuffer.writeUInt8(3, this._addStatus.length);
+
+    // return buffer with metadata + addstatus data + data
+    return Buffer.concat([metaBuffer, this._addStatus, this._data]);
   }
 }
 

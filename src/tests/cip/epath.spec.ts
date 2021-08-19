@@ -40,7 +40,7 @@ describe('Test path interface', ()=> {
   test('Parse path with 2 segment (8 and 16 bits) ', ()=> {
     const bufferPath2 = Buffer.from(listPath2);
     const path = EPath.parse(bufferPath2);
-    expect(path.lenght).toEqual(expectedSize2);
+    expect(path.pathSize).toEqual(expectedSize2);
 
     const fsegment = path.getSegment(0).toJSON();
     const ssegment = path.getSegment(1).toJSON();
@@ -52,7 +52,7 @@ describe('Test path interface', ()=> {
   test('Parse path with 3 segments\n-CLASS SEG\n-INSTANCE SEG\n-ATTRIBUTE SEG', ()=> {
     const bufferPath3 = Buffer.from(listPath3);
     const path = EPath.parse(bufferPath3);
-    expect(path.lenght).toEqual(expectedSize3);
+    expect(path.pathSize).toEqual(expectedSize3);
 
     const fsegment = path.getSegment(0).toJSON();
     const ssegment = path.getSegment(1).toJSON();

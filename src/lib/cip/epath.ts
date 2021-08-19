@@ -18,9 +18,9 @@ export class EPath {
   }
 
   /**
-   * tee
+   * Parse the buffer describing the Epath
    * @param {Buffer} pathBuffer : hex buffer to parse
-   * @return {Path} EPath object
+   * @return {Path} EPath instance
    */
   public static parse(pathBuffer:Buffer): EPath {
     // get only the 3 higher bits describing the segment to get the segment type
@@ -35,23 +35,36 @@ export class EPath {
       const typedSegment:SEGMENT.Segment = SEGMENT.parseMeta(pathBuffer.slice(cursor, cursor+1));
       const dataBuffer = pathBuffer.slice(
           cursor + 1,
-          cursor + typedSegment.dataSize + 1,
+          cursor + typedSegment.dataLength + 1,
       );
 
       typedSegment.parseData(dataBuffer);
 
       segments.push(typedSegment);
-      cursor += typedSegment.dataSize+1;
+      cursor += typedSegment.dataLength+1;
     }
 
     return new EPath(segments);
   }
 
   /**
+   * Get the EPath length in byte
+   * @return {number} epath length in byte
+   */
+  public get lenght() : number {
+    let length = 0;
+
+    for (const s of this._segmentList) {
+      length+=s.length;
+    }
+    return length;
+  }
+
+  /**
    * Get the number of segments contained in the EPath
    * @return {number} number of segments
    */
-  public get lenght() : number {
+  public get pathSize(): number {
     return this._segmentList.length;
   }
 

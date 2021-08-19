@@ -14,7 +14,8 @@ export abstract class Segment {
     protected constructor(stype:number) {
       this._stype = stype;
     }
-    public abstract get dataSize():number;
+    public abstract get length():number;
+    public abstract get dataLength():number;
     public abstract parseMeta(metaBuffer:Buffer):void;
     public abstract parseData(dataBuffer:Buffer):void;
     public abstract encode():Buffer;

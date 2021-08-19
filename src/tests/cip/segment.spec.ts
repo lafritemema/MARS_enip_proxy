@@ -29,7 +29,7 @@ describe('Test segment interface', ()=> {
   test('Parse logical 16 bit buffer', ()=>{
     const metaBuffer = buff16.slice(0, 1);
     const segment = SEGMENT.parseMeta(metaBuffer);
-    const dataBuffer = buff16.slice(1, segment.dataSize + 1);
+    const dataBuffer = buff16.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
 
     expect(segment.toJSON()).toStrictEqual(obj16);
@@ -37,7 +37,7 @@ describe('Test segment interface', ()=> {
   test('Parse logical 32 bit buffer', ()=>{
     const metaBuffer = buff32.slice(0, 1);
     const segment = SEGMENT.parseMeta(metaBuffer);
-    const dataBuffer = buff32.slice(1, segment.dataSize + 1);
+    const dataBuffer = buff32.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
 
     expect(segment.toJSON()).toStrictEqual(obj32);
@@ -46,7 +46,7 @@ describe('Test segment interface', ()=> {
     const metaBuffer = buff40.slice(0, 1);
     const segment = SEGMENT.parseMeta(metaBuffer);
 
-    const dataBuffer = buff40.slice(1, segment.dataSize + 1);
+    const dataBuffer = buff40.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
 
     expect(segment.toJSON()).toStrictEqual(obj40);

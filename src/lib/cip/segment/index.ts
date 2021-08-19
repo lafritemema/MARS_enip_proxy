@@ -11,7 +11,6 @@ import {LogicalSegment} from './logical/logical_segment';
  */
 function parseMeta(metaBuffer:Buffer) : Segment {
   const stcode: number = extractType(metaBuffer);
-
   checkSegmentType(stcode);
 
   const segment:Segment= SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]]
