@@ -42,7 +42,7 @@ describe('Test segment interface', ()=> {
 
     expect(segment.toJSON()).toStrictEqual(obj32);
   });
-  test('Parse logical 40 bit buffer', ()=>{
+  test('Parse logical 40 bit buffer', ()=> {
     const metaBuffer = buff40.slice(0, 1);
     const segment = SEGMENT.parseMeta(metaBuffer);
 

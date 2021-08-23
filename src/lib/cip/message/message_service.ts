@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-export enum Service {
+export enum MessageService {
   GET_ATTRIBUTE_ALL= 0x01,
   GET_ATTRIBUTE_SINGLE= 0x0e,
   RESET= 0x05,

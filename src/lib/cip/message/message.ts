@@ -1,7 +1,7 @@
-import {Status} from '../../cip/message/response_status';
 import {EPath} from '../epath';
 import {MessageType} from './message_type';
-import {Service} from './message_service';
+import {MessageService} from './message_service';
+import {ResponseStatus} from './response_status';
 
 /**
  * abstract class describing a CIP message
@@ -57,15 +57,6 @@ export abstract class Message {
     }
 
     /**
-     * Encode the message to a data frame
-     * @return {Buffer} buffer describing the message
-     */
-    public encode():Buffer {
-      // TODO: Create function to Message encoding
-      return Buffer.from([0x00]);
-    }
-
-    /**
      * Parse the CIP message buffer
      * @param {Buffer} buffer buffer describing the cip message
      * @return {Message} a Message instance
@@ -86,6 +77,7 @@ export abstract class Message {
       }
     }
     public abstract toJSON():object;
+    public abstract encode():Buffer;
     public abstract get length():number;
 }
 
@@ -126,7 +118,7 @@ function checkTypeCode(typeCode:number) {
  * @param {number} serviceCode type code
  */
 function checkServiceCode(serviceCode:number) {
-  if (Service[serviceCode] == undefined) {
+  if (MessageService[serviceCode] == undefined) {
     // eslint-disable-next-line max-len
     throw new Error(`ERROR: The message service <${serviceCode}> is not an available message service`);
   }
@@ -219,7 +211,7 @@ export class RequestMessage extends Message {
   public toJSON() {
     return {
       type: MessageType[this._type],
-      service: Service[this._service],
+      service: MessageService[this._service],
       path: this._path.toJSON(),
       data: this._data.toString('hex'),
     };
@@ -232,8 +224,8 @@ export class RequestMessage extends Message {
   public encode():Buffer {
     // encode a metaBuffer with service + path size
     const metaBuffer = Buffer.alloc(2);
-    metaBuffer.writeUInt8(0, this._service);
-    metaBuffer.writeUInt8(1, this._path.lenght);
+    metaBuffer.writeUInt8(this._service, 0);
+    metaBuffer.writeUInt8(this._path.pathSize, 1);
 
     // get the epath buffer
     const epathBuffer = this._path.encode();
@@ -344,9 +336,9 @@ export class ResponseMessage extends Message {
   public toJSON() {
     return {
       type: MessageType[this._type],
-      service: Service[this._service],
+      service: MessageService[this._service],
       // @ts-ignore
-      status: Status[this._status],
+      status: ResponseStatus[this._status],
       addStatus: this._addStatus.toString('hex'),
       data: this._data.toString('hex'),
     };
@@ -360,9 +352,13 @@ export class ResponseMessage extends Message {
     // encode metabuffer with service + reserved octet + status + size additionnal status
     // size 4 byte
     const metaBuffer = Buffer.alloc(4);
-    metaBuffer.writeUInt8(0, this._service);
-    metaBuffer.writeUInt8(2, this._status);
-    metaBuffer.writeUInt8(3, this._addStatus.length);
+
+    // or operation to set the service first bit to 1 (response value);
+    const serviceRespCode = this._service | 128;
+
+    metaBuffer.writeUInt8(serviceRespCode, 0);
+    metaBuffer.writeUInt8(this._status, 2);
+    metaBuffer.writeUInt8(this._addStatus.length, 3);
 
     // return buffer with metadata + addstatus data + data
     return Buffer.concat([metaBuffer, this._addStatus, this._data]);
@@ -375,8 +371,9 @@ export class ResponseMessage extends Message {
  */
 function checkStatusCode(statusCode:number):void {
   // @ts-ignore
-  if (Status[statusCode] == undefined) {
+  if (ResponseStatus[statusCode] == undefined) {
     // eslint-disable-next-line max-len
     throw new Error(`ERROR: The message status <${statusCode}> is not an available message status`);
   }
 }
+

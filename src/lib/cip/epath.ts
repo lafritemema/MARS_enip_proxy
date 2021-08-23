@@ -104,7 +104,7 @@ export class EPath {
   public encode():Buffer {
     const bufferList = [];
 
-    bufferList.push(Buffer.from([this._segmentList.length]));
+    // bufferList.push(Buffer.from([this._segmentList.length]));
 
     for (const s of this._segmentList) {
       bufferList.push(s.encode());

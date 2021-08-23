@@ -24,8 +24,8 @@ export abstract class CPFItem {
    * @return {number} CPFItem length
    */
   public get length() : number {
-    // data length + metadata length (typeid + length)
-    return this._dataLength + 2;
+    // data length + metadata length (typeid + length = 4 bytes)
+    return this._dataLength + 4;
   }
 
   /**
@@ -46,13 +46,21 @@ export abstract class CPFItem {
   }
 
   /**
+   * Get the item type code
+   * @return {number} item type code
+   */
+  public get type(): number {
+    return this._type;
+  }
+
+  /**
    * Parse the buffer describing the CPFItem metadata
    * @param {Buffer} metaBuffer buffer describing the CPFItem
    * @return {CPFItem} a CPFItem instance
    */
   public static parseMeta(metaBuffer:Buffer):CPFItem {
-    const type = metaBuffer.readUInt8(0);
-    const length = metaBuffer.readUInt8(1);
+    const type = metaBuffer.readUInt16LE(0);
+    const length = metaBuffer.readUInt16LE(2);
 
     const strType = CPFItemType[type];
 
@@ -100,7 +108,7 @@ export class CPFAddressItem extends CPFItem {
    * @return {CPFAddressItem} specific Address item instance
    */
   public static buildNullAddressItem():CPFAddressItem {
-    return new CPFAddressItem(CPFItemType.ADDR_NULL, 2);
+    return new CPFAddressItem(CPFItemType.ADDR_NULL, 0);
   }
 
   /**
@@ -109,7 +117,7 @@ export class CPFAddressItem extends CPFItem {
    * @return {CPFAddressItem} specific Address item instance
    */
   public static buildConnectedAddressItem(connectionId:number):CPFAddressItem {
-    return new CPFAddressItem(CPFItemType.ADDR_CONNECTION_BASED, 4+2,
+    return new CPFAddressItem(CPFItemType.ADDR_CONNECTION_BASED, 4,
         [connectionId]);
   }
 
@@ -121,7 +129,7 @@ export class CPFAddressItem extends CPFItem {
    */
   public static buildSequencedAddressItem(connectionId:number,
       sequenceNbr:number) {
-    return new CPFAddressItem(CPFItemType.ADDR_SEQUENCED_ADDRESS, 8+2,
+    return new CPFAddressItem(CPFItemType.ADDR_SEQUENCED_ADDRESS, 8,
         [connectionId, sequenceNbr]);
   }
 
@@ -144,13 +152,13 @@ export class CPFAddressItem extends CPFItem {
    * @return {Buffer} data frame describing the address item
    */
   public encode(): Buffer {
-    // metabuffer size 2 bytes => <item type, data length>
-    const metaBuffer = Buffer.alloc(2);
+    // metabuffer size 4 bytes => <item type, data length>
+    const metaBuffer = Buffer.alloc(4);
     metaBuffer.writeUInt8(this._type, 0);
-    metaBuffer.writeUInt8(this._data.length * 4, 1);
+    metaBuffer.writeUInt8(this._dataLength, 2);
 
     // databuffer size 4 byte x nb element in this._data
-    const dataBuffer = Buffer.alloc(this._data.length * 4);
+    const dataBuffer = Buffer.alloc(this._dataLength);
 
     let pointer = 0;
     for (const d of this._data) {
@@ -249,10 +257,10 @@ export class CPFDataItem extends CPFItem {
     }
 
     const dataBuffer = this._data.encode();
-    // metabuffer size 2 bytes => <item type, data length>
-    const metaBuffer = Buffer.alloc(2);
-    metaBuffer.writeUInt8(this._type, 0);
-    metaBuffer.writeUInt8(dataBuffer.length, 1);
+    // metabuffer size 4 bytes => <item type (2 bytes), data length (2 bytes)>
+    const metaBuffer = Buffer.alloc(4);
+    metaBuffer.writeUInt16LE(this._type, 0);
+    metaBuffer.writeUInt16LE(dataBuffer.length, 2);
 
     return Buffer.concat([metaBuffer, dataBuffer]);
   }

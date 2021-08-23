@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-export enum Status {
+export enum ResponseStatus {
   Success= 0x00,
   ConnectionFailure= 0x01,
   ResourceUnavailable= 0x02,

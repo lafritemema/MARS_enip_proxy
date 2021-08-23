@@ -63,7 +63,7 @@ describe('Test path interface', ()=> {
     expect(tsegment).toStrictEqual(tExpectObj3);
   });
   test('Build buffer from path with 2 segments', ()=> {
-    const bufferPath2 = Buffer.from([expectedSize2].concat(listPath2));
+    const bufferPath2 = Buffer.from(listPath2);
     const path = new EPath();
     // @ts-ignore
     path.addSegment(new LogicalSegment(LogicalType.CLASS_ID,
@@ -77,7 +77,7 @@ describe('Test path interface', ()=> {
     expect(pathBuffer).toStrictEqual(bufferPath2);
   });
   test('Build buffer from path with 3 segments', ()=> {
-    const bufferPath3 = Buffer.from([expectedSize3].concat(listPath3));
+    const bufferPath3 = Buffer.from(listPath3);
     const path = new EPath();
     // @ts-ignore
     path.addSegment(new LogicalSegment(LogicalType.CLASS_ID,
