@@ -20,6 +20,5 @@ export abstract class Segment {
     public abstract parseData(dataBuffer:Buffer):void;
     public abstract encode():Buffer;
     public abstract toJSON():object;
-    // @ts-ignore
-    public static initialise(metaBuffer:Buffer):Segment;
 }
+

@@ -13,10 +13,24 @@ function parseMeta(metaBuffer:Buffer) : Segment {
   const stcode: number = extractType(metaBuffer);
   checkSegmentType(stcode);
 
-  const segment:Segment= SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]]
-      .initialize(metaBuffer);
-  return segment;
+  const segmentType = SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]];
+  return createTypedInstance(segmentType, metaBuffer);
 }
+
+/**
+ * taest
+ * @param {Segment} s  ddd
+ * @param {Buffer} metaBuffer ddd
+ * @return {Segment} sss
+  */
+function createTypedInstance<S extends Segment>(s:new() => S,
+    metaBuffer:Buffer):S {
+  // eslint-disable-next-line new-cap
+  const typedSegment = new s();
+  typedSegment.parseMeta(metaBuffer);
+  return typedSegment;
+}
+
 
 /**
  * Extract the segment Type code from the metadata frame

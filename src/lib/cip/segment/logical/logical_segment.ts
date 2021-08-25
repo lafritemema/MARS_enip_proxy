@@ -88,18 +88,6 @@ export class LogicalSegment extends Segment {
     }
 
     /**
-     * Initialize the segment
-     * @param {Buffer} metaBuffer
-     * @return {LogicalSegment} the logical segment
-     */
-    public static initialize(metaBuffer:Buffer): LogicalSegment {
-      const lsegment = new LogicalSegment();
-      lsegment.parseMeta(metaBuffer);
-
-      return lsegment;
-    }
-
-    /**
      * Build the buffer describing the segment metadata
      * @return {Buffer} the buffer describing the Segment
      */
