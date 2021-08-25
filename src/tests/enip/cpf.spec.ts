@@ -7,9 +7,9 @@ import {ResponseStatus} from '../../lib/cip/message/response_status';
 import {LogicalFormat} from '../../lib/cip/segment/logical/logical_format';
 import {LogicalSegment} from '../../lib/cip/segment/logical/logical_segment';
 import {LogicalType} from '../../lib/cip/segment/logical/logical_type';
-import {EnipCPF} from '../../lib/enip/encapsulation/cpf/cpf';
-import {CPFAddressItem,
-  CPFDataItem} from '../../lib/enip/encapsulation/cpf/cpf_item';
+import {EnipCPF} from '../../lib/enip/encapsulation/data/cpf';
+import {DataItem} from '../../lib/enip/encapsulation/data/item/data_item';
+import {AddressItem} from '../../lib/enip/encapsulation/data/item/address_item';
 
 describe('CPF ecapsulation parsing and encoding', ()=> {
   // request data
@@ -101,8 +101,8 @@ describe('CPF ecapsulation parsing and encoding', ()=> {
     const reqMessage = new RequestMessage(MessageService.GET_ATTRIBUTE_SINGLE,
         epath);
 
-    const addressItem = CPFAddressItem.buildNullAddressItem();
-    const dataItem = CPFDataItem.buildUnconnectedDataItem(reqMessage);
+    const addressItem = AddressItem.buildNullAddressItem();
+    const dataItem = DataItem.buildUnconnectedDataItem(reqMessage);
     const cpf = new EnipCPF(addressItem, dataItem);
 
     const reqBuffer = cpf.encode();
@@ -115,8 +115,8 @@ describe('CPF ecapsulation parsing and encoding', ()=> {
         ResponseStatus.Success,
         dataBuffer);
 
-    const addressItem = CPFAddressItem.buildNullAddressItem();
-    const dataItem = CPFDataItem.buildUnconnectedDataItem(respMessage);
+    const addressItem = AddressItem.buildNullAddressItem();
+    const dataItem = DataItem.buildUnconnectedDataItem(respMessage);
 
     const cpf = new EnipCPF(addressItem, dataItem);
 

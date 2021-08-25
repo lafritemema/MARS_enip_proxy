@@ -7,27 +7,30 @@ interface CPFJSONObject extends Object{
 }
 
 import {BufferIterator} from '../../../utils/buffer_iterator';
-import {CPFAddressItem, CPFDataItem, CPFItem} from './cpf_item';
+import {Item} from './item/item';
+import {AddressItem} from './item/address_item';
+import {DataItem} from './item/data_item';
+import * as ITEM from './item';
 /**
  * Class describing Common Packet Format
  * @class
  */
 export class EnipCPF {
-  private _addressItem:CPFAddressItem;
-  private _dataItem:CPFDataItem;
-  private _optionalItems:CPFItem[];
+  private _addressItem:AddressItem;
+  private _dataItem:DataItem;
+  private _optionalItems:Item[];
   private _timeout:number;
 
   /**
    * EnipCPF instance constructor
-   * @param {CPFAddressItem} addressItem CPFAddressItem instance containing addressing informations
-   * @param {CPFDataItem} dataItem CPFDataItem instance containing encapsulated data
-   * @param {CPFItem} optionalItems list of other CPF items, default empty array
+   * @param {AddressItem} addressItem AddressItem instance containing addressing informations
+   * @param {DataItem} dataItem DataItem instance containing encapsulated data
+   * @param {Item} optionalItems list of other CPF items, default empty array
    * @param {number} timeout connection timeout, default 0
    */
-  public constructor(addressItem:CPFAddressItem,
-      dataItem:CPFDataItem,
-      optionalItems:CPFItem[]=[],
+  public constructor(addressItem:AddressItem,
+      dataItem:DataItem,
+      optionalItems:Item[]=[],
       timeout:number=0) {
     this._addressItem= addressItem;
     this._dataItem= dataItem;
@@ -59,7 +62,7 @@ export class EnipCPF {
 
     // parse the data
     // parse the 4 next byte to get the address item metadata
-    const addressItem = CPFItem.parseMeta(buffIter.next(4).value);
+    const addressItem = ITEM.parseMeta(buffIter.next(4).value);
     // parse the next X byte (address item data length) to get the data
     if (addressItem.group != 'ADDRESS') {
       // eslint-disable-next-line max-len
@@ -70,7 +73,7 @@ export class EnipCPF {
     }
 
     // parse the 4 next byte to get the data item metadata
-    const dataItem = CPFItem.parseMeta(buffIter.next(4).value);
+    const dataItem = ITEM.parseMeta(buffIter.next(4).value);
     // parse the next X byte (address item data length) to get the data
     dataItem.parseData(buffIter.next(dataItem.dataLength).value);
 
@@ -85,7 +88,7 @@ export class EnipCPF {
       let itemBuff = buffIter.next(4);
 
       while (!itemBuff.done) {
-        const item = CPFItem.parseMeta(itemBuff.value);
+        const item = ITEM.parseMeta(itemBuff.value);
 
         if (item.dataLength>0) {
           item.parseData(buffIter.next(item.dataLength).value);
@@ -96,8 +99,8 @@ export class EnipCPF {
       }
     }
 
-    return new EnipCPF(<CPFAddressItem>addressItem,
-      <CPFDataItem>dataItem,
+    return new EnipCPF(<AddressItem>addressItem,
+      <DataItem>dataItem,
       otherItem,
       timeout);
   }
