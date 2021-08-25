@@ -4,6 +4,7 @@
  * https://jestjs.io/docs/configuration
  */
 
+
 export default {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -147,10 +148,16 @@ export default {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  // testMatch: [
-  //   "**/__tests__/**/*.[jt]s?(x)",
-  //   "**/?(*.)+(spec|test).[tj]s?(x)"
-  // ],
+  testMatch: [
+    // "**/__tests__/**/*.[jt]s?(x)",
+    // "**/?(*.)+(spec|test).[tj]s?(x)"
+    // '**/src/tests/cip/segment.spec.ts',
+    // '**/src/tests/cip/epath.spec.ts',
+    // '**/src/tests/cip/message.spec.ts',
+    // '**/src/tests/utils/buffer_iterator.spec.ts',
+    '**/src/tests/enip/cpf.spec.ts',
+    // '**/src/tests/cip/identity_object.spec.ts',
+  ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
