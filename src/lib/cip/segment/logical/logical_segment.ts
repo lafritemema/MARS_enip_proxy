@@ -62,6 +62,7 @@ export class LogicalSegment extends Segment {
      */
     public parseMeta(metaBuffer : Buffer): void {
       const fcode = decodeLogicalFormat(metaBuffer);
+      // ENHANCE : integrate best optimized code check
       checkFormatCode(fcode);
 
       const lcode = decodeLogicalType(metaBuffer);
@@ -146,6 +147,7 @@ function decodeLogicalType(metaBuffer:Buffer) : number {
   // and a right shift of 2
   // to get the logical type (bit 4 to 6 of buffer)
   const ltcode = (metaBuffer.readUInt8() & 0x1c) >>> 2;
+  // ENHANCE : integrate best optimized code check
   checkTypeCode(ltcode);
 
   return ltcode;
@@ -160,6 +162,7 @@ function decodeLogicalFormat(metaBuffer:Buffer) : number {
   // apply a binary filter (00000011)
   // to get the logical format (bit 7 and 8 of buffer)
   const lfcode = metaBuffer.readUInt8() & 3;
+  // ENHANCE : integrate best optimized code check
   checkFormatCode(lfcode);
 
   return lfcode;

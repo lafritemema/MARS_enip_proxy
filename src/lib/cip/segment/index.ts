@@ -10,19 +10,22 @@ import {LogicalSegment} from './logical/logical_segment';
  * @return {Segment} typed segement
  */
 function parseMeta(metaBuffer:Buffer) : Segment {
+  // get the segment type
   const stcode: number = extractType(metaBuffer);
   checkSegmentType(stcode);
 
-  const segmentType = SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]];
-  return createTypedInstance(segmentType, metaBuffer);
+  // get the class according to the segment type
+  const segmentClass = SegmentTypeObject[<SegmentTypeKeys>SegmentType[stcode]];
+  // return the typed segment instance using the createTypedInstance function
+  return createTypedInstance(segmentClass, metaBuffer);
 }
 
 /**
- * taest
- * @param {Segment} s  ddd
- * @param {Buffer} metaBuffer ddd
- * @return {Segment} sss
-  */
+ * Generic function to create a typed segment instance from a metaBuffer
+ * @param {class} s  typed segment class
+ * @param {Buffer} metaBuffer buffer describing the metadata
+ * @return {Segment} a typed segment heritate from Segment
+ */
 function createTypedInstance<S extends Segment>(s:new() => S,
     metaBuffer:Buffer):S {
   // eslint-disable-next-line new-cap
