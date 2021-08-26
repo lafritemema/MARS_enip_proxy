@@ -3,7 +3,7 @@ import {DeviceProfile} from './device_profile';
 import {DeviceState} from './device_state';
 const VendorName:Record<number, string> = require('./vendor_name.json');
 
-interface IdentityJSONObject extends Object {
+export interface IdentityJSONObject extends Object {
   vendorId:number,
   vendorName:string,
   deviceType:string,
@@ -60,6 +60,14 @@ export class IdentityObject {
     this._serialNumber = serialNumber;
     this._productName = productName;
     this._state = state;
+  }
+
+  /**
+   * Get the IndentityObject length in bytes
+   * @return {number} IndentityObject length
+   */
+  public get length():number {
+    return this._productName.length + 16;
   }
 
   /**

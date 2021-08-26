@@ -4,6 +4,7 @@ import {BufferIterator} from '../../../../utils/buffer_iterator';
 
 interface AddressItemJSONObject extends Object {
   itemType:string,
+  length: number,
   connectionId?:number,
   sequenceNbr?:number
 }
@@ -63,7 +64,8 @@ export class AddressItem extends Item {
    */
   public toJSON(): AddressItemJSONObject {
     const jsonObj:AddressItemJSONObject= {
-      'itemType': ItemType[this._type],
+      itemType: ItemType[this._type],
+      length: this.length,
     };
     if (this._data[0]) jsonObj['connectionId'] = this._data[0];
     if (this._data[1]) jsonObj['sequenceNbr'] = this._data[1];

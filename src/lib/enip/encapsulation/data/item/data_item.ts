@@ -5,6 +5,7 @@ import {Item} from './item';
 
 interface dataItemJSONObject extends Object {
   itemType:string,
+  length:number,
   data:object|null
 }
 
@@ -56,6 +57,7 @@ export class DataItem extends Item {
   public toJSON():dataItemJSONObject {
     return {
       itemType: ItemType[this._type],
+      length: this.length,
       data: this._data ? this._data.toJSON() : null,
     };
   }
