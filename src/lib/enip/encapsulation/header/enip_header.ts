@@ -39,7 +39,7 @@ encapsulation command. length of 8 bytes
    * Build an NOP command header
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildNOP() : EnipHeader {
+  public static buildNOPHeader() : EnipHeader {
     return new EnipHeader(
         EnipCommand.NOP, // NOP command
         0, // data length : 0
@@ -53,7 +53,7 @@ encapsulation command. length of 8 bytes
    * Build an ListIdentity command header
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildListIdentity() : EnipHeader {
+  public static buildListIdentityHeader() : EnipHeader {
     return new EnipHeader(
         EnipCommand.ListIdentity, // ListIdentity command
         0, // data length : 0
@@ -67,7 +67,7 @@ encapsulation command. length of 8 bytes
    * Build an RegisterSession command header
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildRegisterSession(/* TODO: ADD CPF PACKET*/) : EnipHeader {
+  public static buildRegSessionHeader(/* TODO: ADD CPF PACKET*/) : EnipHeader {
     return new EnipHeader(
         EnipCommand.RegisterSession, // ListIdentity command
         4, // data length : 0
@@ -82,7 +82,7 @@ encapsulation command. length of 8 bytes
    * @param {number} session session id
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildUnregisterSession(session:number) : EnipHeader {
+  public static buildUnRegSessionHeader(session:number) : EnipHeader {
     return new EnipHeader(
         EnipCommand.UnregisterSession, // ListIdentity command
         0, // data length : 0
@@ -97,7 +97,7 @@ encapsulation command. length of 8 bytes
    * @param {number} session session id
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildSendRRData(session:number) : EnipHeader {
+  public static buildSendRRDataHeader(session:number) : EnipHeader {
     return new EnipHeader(
         EnipCommand.SendRRData, // ListIdentity command
         0, // data length : 0
