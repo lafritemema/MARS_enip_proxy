@@ -11,7 +11,7 @@ import {EnipCPF} from '../../lib/enip/encapsulation/data/cpf';
 import {DataItem} from '../../lib/enip/encapsulation/data/item/data_item';
 import {AddressItem} from '../../lib/enip/encapsulation/data/item/address_item';
 
-describe('CPF ecapsulation parsing and encoding', ()=> {
+describe('CPF encapsulation parsing and encoding', ()=> {
   // request data
   const requestCPFStr = '000000000000020000000000b20008000e03206b24013005';
   const reqClassObj = {
@@ -37,10 +37,12 @@ describe('CPF ecapsulation parsing and encoding', ()=> {
   };
   const addressItemObj = {
     itemType: 'ADDR_NULL',
+    length: 4,
   };
   const reqDataItemObj = {
     itemType: 'DATA_UNCONNECTED_MESSAGE',
     data: reqMsgObj,
+    length: 12,
   };
   const cpfReqPacketObj = {
     addressItem: addressItemObj,
@@ -61,6 +63,7 @@ describe('CPF ecapsulation parsing and encoding', ()=> {
   const respDataItemObj = {
     itemType: 'DATA_UNCONNECTED_MESSAGE',
     data: respMsgObj,
+    length: 12,
   };
 
   const cpfRespPacketObj = {
