@@ -13,7 +13,7 @@ import {AddressItem} from '../../lib/enip/encapsulation/data/item/address_item';
 
 describe('CPF encapsulation parsing and encoding', ()=> {
   // request data
-  const requestCPFStr = '000000000000020000000000b20008000e03206b24013005';
+  const requestCPFStr = '020000000000b20008000e03206b24013005';
   const reqClassObj = {
     segment: 'LOGICAL',
     type: 'CLASS_ID',
@@ -48,11 +48,10 @@ describe('CPF encapsulation parsing and encoding', ()=> {
     addressItem: addressItemObj,
     dataItem: reqDataItemObj,
     optionalItems: [],
-    timeout: 0,
   };
 
   // response data
-  const responseCPFStr = '000000000000020000000000b20008008e00000034000000';
+  const responseCPFStr = '020000000000b20008008e00000034000000';
   const respMsgObj = {
     type: 'RESPONSE',
     service: 'GET_ATTRIBUTE_SINGLE',
@@ -70,7 +69,6 @@ describe('CPF encapsulation parsing and encoding', ()=> {
     addressItem: addressItemObj,
     dataItem: respDataItemObj,
     optionalItems: [],
-    timeout: 0,
   };
 
   test('CPF packet parsing : request', ()=> {
