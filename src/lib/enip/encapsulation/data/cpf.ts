@@ -1,9 +1,8 @@
 
-interface CPFJSONObject extends Object{
+export interface CPFJSONObject extends Object{
   addressItem:object,
   dataItem:object,
   optionalItems:Object[],
-  timeout:number,
 }
 
 import {BufferIterator} from '../../../utils/buffer_iterator';
@@ -19,23 +18,41 @@ export class EnipCPF {
   private _addressItem:AddressItem;
   private _dataItem:DataItem;
   private _optionalItems:Item[];
-  private _timeout:number;
 
   /**
    * EnipCPF instance constructor
    * @param {AddressItem} addressItem AddressItem instance containing addressing informations
    * @param {DataItem} dataItem DataItem instance containing encapsulated data
    * @param {Item} optionalItems list of other CPF items, default empty array
-   * @param {number} timeout connection timeout, default 0
    */
   public constructor(addressItem:AddressItem,
       dataItem:DataItem,
-      optionalItems:Item[]=[],
-      timeout:number=0) {
+      optionalItems:Item[]=[]) {
     this._addressItem= addressItem;
     this._dataItem= dataItem;
     this._optionalItems = optionalItems;
-    this._timeout = timeout;
+  }
+
+  /**
+   * Get the CPF packet length in bytes
+   * @return {number} CPF packet length
+   */
+  public get length() {
+    const metadataLength = 2;
+    if (this._optionalItems.length > 0) {
+      let oilength:number = 0;
+      for (const i of this._optionalItems) {
+        oilength+=i.length;
+      }
+      return this._addressItem.length +
+      this._dataItem.length +
+      oilength +
+      metadataLength;
+    } else {
+      return this._addressItem.length +
+      this._dataItem.length +
+      metadataLength;
+    }
   }
 
   /**
@@ -46,17 +63,6 @@ export class EnipCPF {
   public static parse(buffer:Buffer) : EnipCPF {
     const buffIter = new BufferIterator(buffer);
 
-    // parse the metadata
-    // the interface handle on 4 bytes, shall be 0 for CIP
-    const interfaceHandle = buffIter.next(4).value.readUInt32LE();
-    // connection timeout on 2 bytes
-
-    if (interfaceHandle!=0) {
-      // eslint-disable-next-line max-len
-      throw new Error(`ERROR : The CPF packet interface handle must be 0 for CIP protocol instead of ${interfaceHandle}.`);
-    }
-
-    const timeout = buffIter.next(2).value.readUInt16LE();
     // read the buffer first byte to get the item count
     const itemCount = buffIter.next(2).value.readUInt16LE();
 
@@ -101,8 +107,7 @@ export class EnipCPF {
 
     return new EnipCPF(<AddressItem>addressItem,
       <DataItem>dataItem,
-      otherItem,
-      timeout);
+      otherItem);
   }
 
   /**
@@ -110,14 +115,9 @@ export class EnipCPF {
    * @return {Buffer} a buffer describing CPF
    */
   public encode():Buffer {
-    // encode metadata buffer : interface handle (4 bytes) + timeout (2 bytes) + cpf item nbr (2 bytes)
-    const metadata = Buffer.alloc(8);
-    // write interface handler on the first 4 bytes 0 for CIP
-    metadata.writeUInt32LE(0);
-    // write timeout on the next 2 bytes
-    metadata.writeUInt16LE(this._timeout, 4);
     // write item nbr on the next 2 bytes : 2 + optionnal items
-    metadata.writeUInt16LE(2 + this._optionalItems.length, 6);
+    const metadataBuff = Buffer.alloc(2);
+    metadataBuff.writeUInt16LE(2 + this._optionalItems.length);
 
     // encode informations about optionnal items if exists
     let optItemBuff = Buffer.alloc(0);
@@ -128,7 +128,7 @@ export class EnipCPF {
     }
 
     // return a Buffer metadata + addressitem + data item + optionnal items ...
-    return Buffer.concat([metadata,
+    return Buffer.concat([metadataBuff,
       this._addressItem.encode(),
       this._dataItem.encode(),
       optItemBuff]);
@@ -150,7 +150,6 @@ export class EnipCPF {
       addressItem: this._addressItem.toJSON(),
       dataItem: this._dataItem.toJSON(),
       optionalItems: optObj,
-      timeout: this._timeout,
     };
   }
 }

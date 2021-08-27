@@ -6,7 +6,7 @@ import {ItemType} from './item_type';
 import {SocketAddrItem,
   SocketAddrItemDataJSONObject} from './socketaddr_item';
 
-interface ListIdentityItemJSONObjet extends Object {
+export interface ListIdentityItemJSONObjet extends Object {
   identity:IdentityJSONObject;
   socketAddress : SocketAddrItemDataJSONObject;
   protocol:number;
@@ -16,31 +16,58 @@ interface ListIdentityItemJSONObjet extends Object {
  * Class describing the list
  */
 export class ListIdentityItem extends Item {
-  private _encProtocol:number;
+  private _encProtocol:number=1;
   private _socketAddress:SocketAddrItem;
   private _identity:IdentityObject;
 
   /**
    * ListIdentityItem instance constructor
+   * @param {number} dataLength length of Identity Item data
    * @param {IdentityObject} identity Identity object instance describing the device identity
    * @param {SocketAddrItem} socketAddress SocketAddress Item instance describing the communication socket information
-   * @param {number} encProtocol encapsulation protocol version
    */
-  constructor(identity:IdentityObject,
-      socketAddress:SocketAddrItem,
-      encProtocol:number=1) {
-    super(ItemType.DATA_LIST_IDENTITY, identity.length + socketAddress.length);
-    this._encProtocol = encProtocol;
+  constructor(dataLength:number,
+      identity:IdentityObject,
+      socketAddress:SocketAddrItem) {
+    super(ItemType.DATA_LIST_IDENTITY, dataLength);
     this._socketAddress = socketAddress;
     this._identity = identity;
   }
 
   /**
-   * Parse the buffer describing the ListIdentityItem object
-   * @param {Buffer} dataBuffer buffer describing the Identity object
-   * @return {ListIdentityItem} ListIdentityItem instance
+   * Parse the buffer describing the ListIdentity Item
+   * @param {Buffer} listIdentityItemBuff buffer describing the Identity object
+   * @return {ListIdentityItem} a ListIdentityItem instance
    */
-  public parseData(dataBuffer:Buffer):ListIdentityItem {
+  public static parse(listIdentityItemBuff:Buffer):ListIdentityItem {
+    const buffIt = new BufferIterator(listIdentityItemBuff);
+    const typeCode = buffIt.next(2).value.readUInt16LE();
+    const dataLength = buffIt.next(2).value.readUInt16LE();
+    const encProtocol = buffIt.next(2).value.readUInt16LE();
+
+    checkEncapsulationProtocol(encProtocol);
+    checkTypeCode(typeCode);
+
+    const socketAddrBuffer = buffIt.next(16).value;
+    const socketAddress = new SocketAddrItem();
+    socketAddress.parseData(socketAddrBuffer);
+
+    // get the identityItem buffer
+    // => next X bytes where X = length of ListIdentityItem - length of socketaddr data - 2 byte for enc protocol
+    const identityBuffer = buffIt.next(
+        dataLength - socketAddress.dataLength - 2).value;
+    const identity = IdentityObject.parse(identityBuffer);
+
+    return new ListIdentityItem(dataLength,
+        identity,
+        socketAddress);
+  }
+
+  /**
+   * Parse the buffer describing the ListIdentityItem data
+   * @param {Buffer} dataBuffer buffer describing the Identity object
+   */
+  public parseData(dataBuffer:Buffer):void {
     const buffIt = new BufferIterator(dataBuffer);
     // get the protocol : first 2 bytes
     const encProtocol = buffIt.next(2).value.readUInt16LE();
@@ -56,7 +83,9 @@ export class ListIdentityItem extends Item {
         this.dataLength - socketAddress.dataLength - 2).value;
     const identity = IdentityObject.parse(identityBuffer);
 
-    return new ListIdentityItem(identity, socketAddress, encProtocol);
+    this._encProtocol = encProtocol;
+    this._socketAddress = socketAddress;
+    this._identity = identity;
   }
 
   /**
@@ -87,3 +116,25 @@ export class ListIdentityItem extends Item {
   }
 }
 
+/**
+ * Check if the listIdentity item encapsulation protocol is conform
+ * @param {number} encProtocol encapsulation protocol code
+ */
+function checkEncapsulationProtocol(encProtocol:number) {
+  if (encProtocol != 1) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The list identity item encpasulation protocol <${encProtocol}> is not conform. expected 1`);
+  }
+}
+
+/**
+ * Check if the listIdentity item type code is conform
+ * @param {number} typeCode istIdentity item type code
+ */
+function checkTypeCode(typeCode:number) {
+  if (typeCode != ItemType.DATA_LIST_IDENTITY) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The list identity item type code <${typeCode}> is not conform.
+    expected ${ItemType.DATA_LIST_IDENTITY}`);
+  }
+}
