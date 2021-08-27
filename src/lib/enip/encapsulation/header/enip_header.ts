@@ -114,12 +114,14 @@ encapsulation command. length of 8 bytes
   /**
    * Build an UnregisterSession command header
    * @param {number} session session id
+   * @param {number} dataLength lenght of ecapsulated data in bytes
    * @return {EnipHeader} specific header for NOP command
    */
-  public static buildSendRRDataHeader(session:number) : EnipHeader {
+  public static buildSendRRDataHeader(session:number,
+      dataLength:number) : EnipHeader {
     return new EnipHeader(
         EnipCommand.SendRRData, // ListIdentity command
-        0, // data length : 0
+        dataLength, // data length : 0
         session, // session id : 0,
         EnipStatus.SUCCESS, // status : 0
         Buffer.alloc(8), // context : empty buffer size 8
@@ -197,7 +199,7 @@ encapsulation command. length of 8 bytes
     return {
       command: EnipCommand[this._command],
       dataLength: this._dataLength,
-      session: this._session.toString(16),
+      session: this._session != 0 ? this._session.toString(16) : '00000000',
       status: EnipStatus[this._status],
       senderContext: Array.from(this._senderContext),
       options: this._options,
