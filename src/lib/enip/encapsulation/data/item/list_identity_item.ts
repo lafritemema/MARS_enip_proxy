@@ -22,14 +22,13 @@ export class ListIdentityItem extends Item {
 
   /**
    * ListIdentityItem instance constructor
-   * @param {number} dataLength length of Identity Item data
    * @param {IdentityObject} identity Identity object instance describing the device identity
    * @param {SocketAddrItem} socketAddress SocketAddress Item instance describing the communication socket information
    */
-  constructor(dataLength:number,
-      identity:IdentityObject,
+  constructor(identity:IdentityObject,
       socketAddress:SocketAddrItem) {
-    super(ItemType.DATA_LIST_IDENTITY, dataLength);
+    super(ItemType.DATA_LIST_IDENTITY,
+        identity.length + socketAddress.dataLength + 2);
     this._socketAddress = socketAddress;
     this._identity = identity;
   }
@@ -58,7 +57,7 @@ export class ListIdentityItem extends Item {
         dataLength - socketAddress.dataLength - 2).value;
     const identity = IdentityObject.parse(identityBuffer);
 
-    return new ListIdentityItem(dataLength,
+    return new ListIdentityItem(
         identity,
         socketAddress);
   }
@@ -95,12 +94,19 @@ export class ListIdentityItem extends Item {
   public encode():Buffer {
     const metaBuffer = Buffer.alloc(4);
     metaBuffer.writeUInt16LE(this.type, 0);
-    metaBuffer.writeUInt16LE(this.length, 2);
+    metaBuffer.writeUInt16LE(this._dataLength, 2);
 
-    const socketAddrBuffer = this._socketAddress.encode();
+    const protocolBuffer = Buffer.alloc(2);
+    protocolBuffer.writeUInt16LE(this._encProtocol);
+
+    const socketAddrBuffer = this._socketAddress.encodeData();
     const identityBuffer = this._identity.encode();
 
-    return Buffer.concat([metaBuffer, socketAddrBuffer, identityBuffer]);
+    return Buffer.concat([
+      metaBuffer,
+      protocolBuffer,
+      socketAddrBuffer,
+      identityBuffer]);
   }
 
   /**
@@ -110,7 +116,7 @@ export class ListIdentityItem extends Item {
   public toJSON():ListIdentityItemJSONObjet {
     return {
       identity: this._identity.toJSON(),
-      socketAddress: this._socketAddress.toJSON(),
+      socketAddress: this._socketAddress.dataToJSON(),
       protocol: this._encProtocol,
     };
   }

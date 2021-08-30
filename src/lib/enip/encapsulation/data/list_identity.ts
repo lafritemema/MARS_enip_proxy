@@ -4,7 +4,7 @@ import {ListIdentityItem,
 
 interface ListIdentityJSONObjet extends Object {
   itemCount:number,
-  identity:ListIdentityItemJSONObjet,
+  identityItem:ListIdentityItemJSONObjet,
 }
 /**
  * Class describe ListIdentity command specific data
@@ -35,9 +35,11 @@ export class ListIdentity {
    * @return {Buffer} datagram describing the ListIdentity
    */
   public encode():Buffer {
+    const metaBuff = Buffer.alloc(2);
+    metaBuff.writeUInt16LE(this._itemCount, 0);
     const identityItemBuffer = this._identityItem.encode();
     return Buffer.concat([
-      Buffer.from([this._itemCount]),
+      metaBuff,
       identityItemBuffer,
     ]);
   }
@@ -65,7 +67,7 @@ export class ListIdentity {
   public toJSON():ListIdentityJSONObjet {
     return {
       itemCount: 1,
-      identity: this._identityItem.toJSON(),
+      identityItem: this._identityItem.toJSON(),
     };
   }
 }
