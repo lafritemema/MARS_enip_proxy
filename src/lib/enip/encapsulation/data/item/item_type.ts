@@ -19,11 +19,22 @@ export enum ItemType {
 export const ItemTypeObject = {
   ADDR_NULL: AddressItem, // address item (used for UCMM messages) Indicates that encapsulation routing is NOT needed
   DATA_LIST_IDENTITY: DataItem, // data item
-  ADDR_CONNECTION_BASED: DataItem, // address item
+  ADDR_CONNECTION_BASED: AddressItem, // address item
   DATA_CONNECTED_TRANSPORT: DataItem, // data item
   DATA_UNCONNECTED_MESSAGE: DataItem, // data item
   DATA_LIST_SERVICES: DataItem, // data item
   DATA_SOCKADDR_O2T: DataItem, // data item
   DATA_SOCKADDR_T2O: DataItem, // data item
-  ADDR_SEQUENCED_ADDRESS: DataItem,
+  ADDR_SEQUENCED_ADDRESS: AddressItem,
 };
+
+/**
+ * Check if the item type code is conform
+ * @param {number} itemType item type code
+ */
+export function checkItemType(itemType:number) {
+  if (ItemType[itemType]==undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The item type code <${itemType}> is not a valid item type code.`);
+  }
+}

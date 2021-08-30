@@ -18,7 +18,7 @@ interface SocketAddrItemJSONObject extends SocketAddrItemDataJSONObject {
  * Class describing a SocketAddr Item
  */
 export class SocketAddrItem extends Item {
-  private _sinFamilly:number=2;
+  private _sinFamilly:number= 2;
   private _sinPort:number;
   private _sinAddr:number;
   private _sinZero:number[]=Array(8).fill(0);
@@ -39,12 +39,21 @@ export class SocketAddrItem extends Item {
     this._sinPort = sinPort;
 
     if (typeof sinAddr == 'string') {
-      this._sinAddr = convertIp2Num(sinAddr);
+      this._sinAddr = convertIp2Num(sinAddr, 'BE');
     } else {
       this._sinAddr = sinAddr;
     }
   }
 
+  // TODO : static parse function (meta + data)
+
+  /**
+   * Set the sinFamilly parameter
+   * @param {number} sinFamilly sinFamilly parameter
+   */
+  public set sinFamilly(sinFamilly:number) {
+    this._sinFamilly = sinFamilly;
+  }
   /**
    * Parse a buffer describing the SocketAddr item data
    * @param {Buffer} dataBuffer buffer describing the SocketAddr item data
@@ -119,9 +128,17 @@ export class SocketAddrItem extends Item {
     return {
       sinFamilly: this._sinFamilly,
       sinPort: this._sinPort,
-      sinAddress: convertNum2Ip(this._sinAddr),
+      sinAddress: convertNum2Ip(this._sinAddr, 'BE'),
       sinZero: this._sinZero,
     };
+  }
+
+  /**
+   * Get the group of item type
+   * @return {string} item group
+   */
+  public get group() : string {
+    return 'DATA';
   }
 }
 
@@ -142,7 +159,7 @@ function checkSocketAddrTypeCode(typeCode:number):void {
  * @param {number} sinFamilly the sin familly number to check
  */
 function checkSinFamilly(sinFamilly:number) {
-  if (sinFamilly != 2) {
+  if (sinFamilly != 2 && sinFamilly != 512) {
     // eslint-disable-next-line max-len
     throw new Error(`ERROR: The SocketAddr sin familly <${sinFamilly}> is not conform, must be 2.`);
   }
@@ -153,9 +170,9 @@ function checkSinFamilly(sinFamilly:number) {
  * @param {number[]} sinZero the sin zero array to check
  */
 function checkSinZero(sinZero:number[]) {
-  if (sinZero != Array(8).fill(0)) {
+  if (!sinZero.every((el)=>el==0)) {
     // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The SocketAddr sin zero <${sinZero}> is not conform, must be 0.`);
+    throw new Error(`ERROR: The SocketAddr sin zero <${sinZero}> is not conform, must be ${Array(8).fill(0)}.`);
   }
 }
 

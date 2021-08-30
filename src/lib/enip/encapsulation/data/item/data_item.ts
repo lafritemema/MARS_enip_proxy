@@ -87,7 +87,16 @@ export class DataItem extends Item {
    * @param {Buffer} dataBuffer buffer describing the CPF Address Item
    */
   public parseData(dataBuffer:Buffer):void {
+    this._dataLength = dataBuffer.length;
     const cipMessage = CIPMessage.parse(dataBuffer);
     this._data = cipMessage;
+  }
+
+  /**
+   * Get the group of item type
+   * @return {string} item group
+   */
+  public get group() : string {
+    return 'DATA';
   }
 }

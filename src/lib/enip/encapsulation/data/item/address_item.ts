@@ -112,7 +112,16 @@ export class AddressItem extends Item {
       buffItEl = buffIt.next(4);
     }
 
+    this._dataLength = dataBuffer.length;
     this._data = data;
+  }
+
+  /**
+   * Get the group of item type
+   * @return {string} item group
+   */
+  public get group() : string {
+    return 'ADDRESS';
   }
 }
 

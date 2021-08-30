@@ -67,6 +67,7 @@ export class ListIdentityItem extends Item {
    * @param {Buffer} dataBuffer buffer describing the Identity object
    */
   public parseData(dataBuffer:Buffer):void {
+    this._dataLength = dataBuffer.length;
     const buffIt = new BufferIterator(dataBuffer);
     // get the protocol : first 2 bytes
     const encProtocol = buffIt.next(2).value.readUInt16LE();
@@ -119,6 +120,14 @@ export class ListIdentityItem extends Item {
       socketAddress: this._socketAddress.dataToJSON(),
       protocol: this._encProtocol,
     };
+  }
+
+  /**
+   * Get the group of item type
+   * @return {string} item group
+   */
+  public get group() : string {
+    return 'DATA';
   }
 }
 

@@ -1,4 +1,4 @@
-import {ItemType} from './item_type';
+// import {ItemType} from './item_type';
 /**
  * Class describing an encapsulation item
  */
@@ -12,9 +12,9 @@ export abstract class Item {
    * @param {number} dataLength Item length in bytes
    * @protected
    */
-  protected constructor(type:number, dataLength:number) {
+  public constructor(type:number, dataLength:number=0) {
     // ENHANCE : integrate best optimized item type check
-    checkItemType(type);
+    // checkItemType(type);
     this._type = type;
     this._dataLength = dataLength;
   }
@@ -44,15 +44,6 @@ export abstract class Item {
   }
 
   /**
-   * Get the group of item type (DATA or ADDRESS)
-   * @return {string} item group (DATA or ADDRESS)
-   */
-  public get group() : string {
-    const group = ItemType[this._type].substr(0, 4);
-    return group =='DATA'? 'DATA' : 'ADDRESS';
-  }
-
-  /**
    * Get the item type code
    * @return {number} item type code
    */
@@ -66,23 +57,12 @@ export abstract class Item {
    */
   public set type(typeCode:number) {
     // ENHANCE : integrate best optimized item type check
-    checkItemType(typeCode);
+    // checkItemType(typeCode);
     this._type = typeCode;
   }
 
   public abstract toJSON():object;
   public abstract encode():Buffer;
   public abstract parseData(buffer:Buffer):void;
-}
-
-/**
- * Check if the type code is conform
- * raise an Error if not
- * @param {number} typeCode code to check
- */
-function checkItemType(typeCode:number):void {
-  if (ItemType[typeCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The Item type <${typeCode}> is not an available Item type`);
-  }
+  public abstract get group():string;
 }
