@@ -1,11 +1,29 @@
+interface ByteOrderFunctions {
+  read:()=>number,
+  write:()=>void
+}
+
+const ByteOrderEnum:Record<string, ByteOrderFunctions> = {
+  LE: {
+    read: Buffer.prototype.readUInt32LE,
+    write: Buffer.prototype.writeUInt32LE,
+  },
+  BE: {
+    read: Buffer.prototype.readUInt32BE,
+    write: Buffer.prototype.writeUInt32BE,
+  },
+};
 
 /**
  * Convert an IP string under number
  * @param {string} ipString ip string
+ * @param {string} byteOrder byte order for ipNum encoding
  * @return {number} ip under number format
  */
-export function convertIp2Num(ipString:string):number {
-  let ipTemp:number|string[]|number[];
+export function convertIp2Num(ipString:string, byteOrder:string='LE'):number {
+  checkByteOrder(byteOrder);
+  const boFunctions = ByteOrderEnum[byteOrder];
+  let ipTemp:number|string[]|number[]|Buffer;
   const errorMsg = `ERROR: IP address <${ipString}> is not conform.`;
 
   ipTemp = ipString.split('.');
@@ -13,8 +31,7 @@ export function convertIp2Num(ipString:string):number {
   if (ipTemp.length == 4) {
     try {
       ipTemp = ipTemp.map((ipEl:string)=>checkAndParseIpEl(ipEl));
-      ipTemp = Buffer.from(ipTemp).readUInt32LE();
-      return ipTemp;
+      return boFunctions.read.call(Buffer.from(ipTemp));
     } catch (error) {
       throw new Error(errorMsg +'\n'+(error as Error).message);
     }
@@ -27,13 +44,20 @@ export function convertIp2Num(ipString:string):number {
 /**
  * Convert an IP number under string
  * @param {number} ipNum IP address under number format
+ * @param {string} byteOrder byte order for ipNum encoding
+ * BE for Big Endian order, LE for Little Endian, default LE
  * @return {string} ip under string format
  */
-export function convertNum2Ip(ipNum:number) {
-  const maxIpNum = Buffer.from([255, 255, 255, 255]).readUInt32BE();
-  if (ipNum < maxIpNum) {
+export function convertNum2Ip(ipNum:number, byteOrder:string='LE'):string {
+  const maxIpNumBuffer = Buffer.from([255, 255, 255, 255]);
+  checkByteOrder(byteOrder);
+
+  const boFunction = ByteOrderEnum[byteOrder];
+  const maxIpNum = boFunction.read.call(maxIpNumBuffer);
+  if (ipNum <= maxIpNum) {
     const ipBuffer = Buffer.alloc(4);
-    ipBuffer.writeUInt32LE(ipNum);
+    // @ts-ignore
+    boFunction.write.call(ipBuffer, ipNum);
     return Array.from(ipBuffer).join('.');
   } else {
     // eslint-disable-next-line max-len
@@ -57,4 +81,13 @@ function checkAndParseIpEl(ipEl:string):number {
   }
 }
 
-
+/**
+ * Check if the byte order type is conform
+ * @param {string} byteOrder byte order to check
+ */
+function checkByteOrder(byteOrder:string) {
+  if (ByteOrderEnum[byteOrder] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The byte order <${byteOrder}> is not an valid byte order. Must be LE or BE.`);
+  }
+}
