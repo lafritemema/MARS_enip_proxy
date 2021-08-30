@@ -73,13 +73,13 @@ export class EnipCPF {
 
     if (addressItem == undefined || addressItem.group != 'ADDRESS') {
       // eslint-disable-next-line max-len
-      throw new Error(`ERROR : The CPF packet first item must be an ADDRESS type item instead of ${addressItem.group}.`);
+      throw new Error(`ERROR : The CPF packet first item must be an ADDRESS type item instead of ${addressItem?addressItem.group:undefined}.`);
     }
 
     const dataItem = itemIt.next().value;
     if (dataItem == undefined || dataItem.group != 'DATA') {
       // eslint-disable-next-line max-len
-      throw new Error(`ERROR : The CPF packet second item must be an DATA type item instead of ${dataItem.group}.`);
+      throw new Error(`ERROR : The CPF packet second item must be an DATA type item instead of ${dataItem?dataItem.group:undefined}.`);
     }
 
     const otherItem = [];

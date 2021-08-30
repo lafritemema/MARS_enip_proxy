@@ -30,7 +30,6 @@ export class ItemIterator {
    */
   public next():ItemIteratorObject {
     const itemMetaIt = this._bufferIt.next(4);
-    console.log(itemMetaIt.value);
     if (!itemMetaIt.done) {
       const itemType = itemMetaIt.value.readUInt16LE(0);
       checkItemType(itemType);
