@@ -5,12 +5,10 @@ export interface CPFJSONObject extends Object{
   optionalItems:Object[],
 }
 
-import {BufferIterator} from '../../../utils/buffer_iterator';
 import {Item} from './item/item';
 import {AddressItem} from './item/address_item';
 import {DataItem} from './item/data_item';
-import * as ITEM from './item';
-import { ItemIterator } from './item/item_iterator';
+import {ItemIterator} from './item/item_iterator';
 /**
  * Class describing Common Packet Format
  * @class
