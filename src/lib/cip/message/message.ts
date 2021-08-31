@@ -315,17 +315,22 @@ export class ResponseMessage extends Message {
     // const reserved = buffer.readUInt8(0); // reserved shall be 00
     const status = responseBuffer.readUInt8(1);
     const addStatusSize = responseBuffer.readUInt8(2);
-    let addStatus = undefined;
-    let data = null;
 
-    if (addStatusSize>0) {
-      addStatus = responseBuffer.slice(3, 3+(addStatusSize*2)+1);
-      data = responseBuffer.slice(3+(addStatusSize*2)+1);
-    } else {
-      data = responseBuffer.slice(3);
+    let addStatus = undefined;
+    let data = undefined;
+
+    // ENHANCE : implement BufferIterator and tests addStatus
+    if (responseBuffer.length > 3) {
+      if (addStatusSize == 0) {
+        data = responseBuffer.slice(3);
+      } else {
+        addStatus = responseBuffer.slice(3, 3+(addStatusSize*2)+1);
+        if (responseBuffer.length > 3 + (addStatusSize*2) + 1) {
+          data = responseBuffer.slice(3+(addStatusSize*2)+1);
+        }
+      }
     }
 
-    // ENHANCE : implement BufferIterator
     return new ResponseMessage(service, status, data, addStatus);
   }
 
