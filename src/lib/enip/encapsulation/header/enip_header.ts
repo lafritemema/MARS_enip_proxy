@@ -2,7 +2,7 @@ import {BufferIterator} from '../../../utils/buffer_iterator';
 import {EnipCommand} from './enip_command';
 import {EnipStatus} from './enip_status';
 
-interface EnipHeaderJSONObject extends Object{
+export interface EnipHeaderJSONObject extends Object{
   command:string,
   dataLength:number,
   session:string,
@@ -47,11 +47,27 @@ encapsulation command. length of 8 bytes
   }
 
   /**
-   * Get EnipHeader length in bytes
+   * Get the only the EnipHeader length in bytes
    * @return {number} EnipHeader length
    */
   public get length():number {
     return 24;
+  }
+
+  /**
+   * Get the encapsulated data length in bytes
+   * @return {number} encapsulated data length
+   */
+  public get dataLengt():number {
+    return this._dataLength;
+  }
+
+  /**
+   * Get EnipHeader command code in bytes
+   * @return {number} EnipHeader length
+   */
+  public get command():number {
+    return this._command;
   }
 
   /**
