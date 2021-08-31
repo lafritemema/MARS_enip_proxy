@@ -2,8 +2,9 @@
   "name": "enip_proxy",
   "version": "0.1.0",
   "description": "proxy to transform http request to enip request ",
-  "main": "main.js",
+  "main": "./bin/main.js",
   "scripts": {
+    "serve": "node ./bin/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
