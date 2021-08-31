@@ -1,27 +1,15 @@
+import {Socket} from 'net';
+import {Enip} from './enip/enip';
 
-// import { CPF } from "./enip"
-import {Path} from './cip/path.js';
-// eslint-disable-next-line spaced-comment
+const client = new Socket();
+client.connect(44818, '127.0.0.2', ()=> {
+  console.log('connected');
+  const enipRegSessionReq = Enip.buildRegisterSessionReq();
+  client.write(enipRegSessionReq.encode());
+});
 
-import * as SEGMENT from './cip/segment';
-
-/*
-interface DataItem{
-    typeId : string,
-    dataBuf : Buffer
-}
-
-let databuf = Buffer.alloc(2);
-databuf.writeInt16LE(1);
-
-let dilist:DataItem[] = [
-                        {typeId:'Null', dataBuf:Buffer.alloc(2,0)},
-                        {typeId:'UCMM', dataBuf:databuf}
-                    ]
-
-let buf:Buffer = CPF.build(dilist)
-console.log(buf.length)
-
-console.log(buf);
-*/
-
+client.on('data', (data)=> {
+  const enip = Enip.parse(data);
+  console.log(enip.toJSON());
+  client.destroy();
+});

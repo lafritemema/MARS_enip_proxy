@@ -1,6 +1,9 @@
 import {BufferIterator} from '../../utils/buffer_iterator';
 import {DeviceProfile} from './device_profile';
 import {DeviceState} from './device_state';
+
+// ENHANCE : improve access to vendor name 
+// eslint-disable-next-line max-len
 const VendorName:Record<number, string> = require('./vendor_name.json');
 
 export interface IdentityJSONObject extends Object {
