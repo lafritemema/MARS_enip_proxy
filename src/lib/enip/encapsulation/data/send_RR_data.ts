@@ -1,4 +1,5 @@
 import {EnipCPF, CPFJSONObject} from './cpf';
+import {EnipData} from './enip_data';
 
 interface SendRRDataJSONObject extends Object {
   interfaceHandle:number,
@@ -9,7 +10,7 @@ interface SendRRDataJSONObject extends Object {
 /**
  * Class describe SendRRData command specific data
  */
-export class SendRRData {
+export class SendRRData implements EnipData {
   private _interfaceHandle:number = 0; // interface handle 0 for CIP
   private _timeout:number;
   private _enipCpf:EnipCPF;

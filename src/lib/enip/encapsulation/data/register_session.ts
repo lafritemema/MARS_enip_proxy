@@ -1,6 +1,8 @@
 
 // QUESTION :register session information are not very usefull but they are exist
 
+import {EnipData} from './enip_data';
+
 interface RegisterSessionJSONObject extends Object {
   protocolVersion: number,
   optionFlags:number,
@@ -9,7 +11,7 @@ interface RegisterSessionJSONObject extends Object {
 /**
  * Class describe RegisterSession command specific data
  */
-export class RegisterSession {
+export class RegisterSession implements EnipData {
   private _protocol:number = 1;
   private _optionFlags:number = 0;
 

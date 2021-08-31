@@ -1,4 +1,5 @@
 
+import {EnipData} from './enip_data';
 import {ListIdentityItem,
   ListIdentityItemJSONObjet} from './item/list_identity_item';
 
@@ -9,7 +10,7 @@ interface ListIdentityJSONObjet extends Object {
 /**
  * Class describe ListIdentity command specific data
  */
-export class ListIdentity {
+export class ListIdentity implements EnipData {
   // QUESTION : itemcount always = 1 ??
   private _itemCount:number = 1;
   private _identityItem:ListIdentityItem;
