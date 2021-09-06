@@ -1,4 +1,4 @@
-import {BufferIterator} from '../../lib/utils/buffer_iterator';
+import {BufferIterator} from 'utils';
 
 describe('Test BufferIterator class', ()=> {
   test('iterate in a buffer', () => {
