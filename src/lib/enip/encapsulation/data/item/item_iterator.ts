@@ -1,12 +1,9 @@
-import {BufferIterator} from '../../../../utils/buffer_iterator';
+import {BufferIterator} from 'utils';
 import {Item} from './item';
-import {checkItemType,
-  ItemType,
-  ItemTypeObject,
-  ItemTypeKey} from './item_type';
+import {buildTypedItem} from './item_type';
 
 
-interface ItemIteratorObject {
+export interface ItemIteration {
   value:Item|undefined,
   done:boolean,
 }
@@ -26,21 +23,17 @@ export class ItemIterator {
 
   /**
    * Iteration function to parse and extract items
-   * @return {ItemIteratorObject} object containing the next item if exist
+   * @return {ItemIteration} object containing the next item if exist
    */
-  public next():ItemIteratorObject {
+  public next():ItemIteration {
     const itemMetaIt = this._bufferIt.next(4);
+
     if (!itemMetaIt.done) {
-      const itemType = itemMetaIt.value.readUInt16LE(0);
-      checkItemType(itemType);
-      const dataLength = itemMetaIt.value.readUInt16LE(2);
+      const metaBuffer = itemMetaIt.value;
+      const typedItem = buildTypedItem(metaBuffer);
 
-      const itemTypeObj = ItemTypeObject[<ItemTypeKey>ItemType[itemType]];
-      // @ts-ignore
-      const typedItem = createTypedInstance(itemTypeObj);
-
-      if (dataLength > 0) {
-        const dataBuffer = this._bufferIt.next(dataLength).value;
+      if (typedItem.dataLength > 0) {
+        const dataBuffer = this._bufferIt.next(typedItem.dataLength).value;
         typedItem.parseData(dataBuffer);
       }
 
@@ -51,15 +44,4 @@ export class ItemIterator {
   }
 }
 
-/**
- * Generic function to create a typed item instance from a metaBuffer
- * @param {class} i  typed item class
- * @param {number} type item type code
- * @param {number} length item data length
- * @return {Item} a typed item heritate from Item
-*/
-function createTypedInstance<I extends Item>(i: new() => I):I {
-  // eslint-disable-next-line new-cap
-  const typedItem = new i();
-  return typedItem;
-}
+

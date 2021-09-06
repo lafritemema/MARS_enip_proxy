@@ -12,7 +12,7 @@ export abstract class Item {
    * @param {number} dataLength Item length in bytes
    * @protected
    */
-  public constructor(type:number, dataLength:number=0) {
+  protected constructor(type:number, dataLength:number=0) {
     // ENHANCE : integrate best optimized item type check
     // checkItemType(type);
     this._type = type;

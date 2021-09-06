@@ -1,14 +1,17 @@
 
+
+import {AddressItem} from './item/address_item';
+import {DataItem} from './item/data_item';
+import {Item} from './item/item';
+import {ItemIterator,
+  ItemIteration} from './item/item_iterator';
+
 export interface CPFJSONObject extends Object{
   addressItem:object,
   dataItem:object,
   optionalItems:Object[],
 }
 
-import {Item} from './item/item';
-import {AddressItem} from './item/address_item';
-import {DataItem} from './item/data_item';
-import {ItemIterator} from './item/item_iterator';
 /**
  * Class describing Common Packet Format
  * @class
@@ -67,17 +70,24 @@ export class EnipCPF {
     checkItemCount(itemCount);
 
     const itemIt = new ItemIterator(cpfBuffer.slice(2));
-    const addressItem = itemIt.next().value;
 
-    if (addressItem == undefined || addressItem.group != 'ADDRESS') {
+    let iteration:ItemIteration= itemIt.next();
+    let dataItem:DataItem;
+    let addressItem:AddressItem;
+
+    if (!iteration.done && iteration.value instanceof AddressItem) {
+      addressItem = <AddressItem>iteration.value;
+    } else {
       // eslint-disable-next-line max-len
-      throw new Error(`ERROR : The CPF packet first item must be an ADDRESS type item instead of ${addressItem?addressItem.group:undefined}.`);
+      throw new Error(`ERROR : The CPF packet first item must be an AddressItem instance instead of ${typeof iteration}.`);
     }
 
-    const dataItem = itemIt.next().value;
-    if (dataItem == undefined || dataItem.group != 'DATA') {
+    iteration = itemIt.next();
+    if (!iteration.done && iteration.value instanceof DataItem) {
+      dataItem = <DataItem>iteration.value;
+    } else {
       // eslint-disable-next-line max-len
-      throw new Error(`ERROR : The CPF packet second item must be an DATA type item instead of ${dataItem?dataItem.group:undefined}.`);
+      throw new Error(`ERROR : The CPF packet second item must be an DataItem instance instead of ${typeof iteration}.`);
     }
 
     const otherItem = [];

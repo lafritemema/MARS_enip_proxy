@@ -1,6 +1,6 @@
-import {IdentityObject,
-  IdentityJSONObject} from '../../../../cip/identity/identity_object';
-import {BufferIterator} from '../../../../utils/buffer_iterator';
+import {Identity,
+  IdentityJSONObject} from 'cip/identity';
+import {BufferIterator} from 'utils';
 import {Item} from './item';
 import {ItemType} from './item_type';
 import {SocketAddrItem,
@@ -18,14 +18,14 @@ export interface ListIdentityItemJSONObjet extends Object {
 export class ListIdentityItem extends Item {
   private _encProtocol:number=1;
   private _socketAddress:SocketAddrItem;
-  private _identity:IdentityObject;
+  private _identity:Identity;
 
   /**
    * ListIdentityItem instance constructor
-   * @param {IdentityObject} identity Identity object instance describing the device identity
+   * @param {Identity} identity Identity object instance describing the device identity
    * @param {SocketAddrItem} socketAddress SocketAddress Item instance describing the communication socket information
    */
-  constructor(identity:IdentityObject,
+  constructor(identity:Identity,
       socketAddress:SocketAddrItem) {
     super(ItemType.DATA_LIST_IDENTITY,
         identity.length + socketAddress.dataLength + 2);
@@ -55,7 +55,7 @@ export class ListIdentityItem extends Item {
     // => next X bytes where X = length of ListIdentityItem - length of socketaddr data - 2 byte for enc protocol
     const identityBuffer = buffIt.next(
         dataLength - socketAddress.dataLength - 2).value;
-    const identity = IdentityObject.parse(identityBuffer);
+    const identity = Identity.parse(identityBuffer);
 
     return new ListIdentityItem(
         identity,
@@ -81,7 +81,7 @@ export class ListIdentityItem extends Item {
     // => next X bytes where X = length of ListIdentityItem - length of socketaddr data - 2 byte for enc protocol
     const identityBuffer = buffIt.next(
         this.dataLength - socketAddress.dataLength - 2).value;
-    const identity = IdentityObject.parse(identityBuffer);
+    const identity = Identity.parse(identityBuffer);
 
     this._encProtocol = encProtocol;
     this._socketAddress = socketAddress;

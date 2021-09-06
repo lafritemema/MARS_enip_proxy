@@ -29,36 +29,6 @@ export class AddressItem extends Item {
   }
 
   /**
-   * Build an Null CPF Address Item
-   * @return {AddressItem} specific Address item instance
-   */
-  public static buildNullAddressItem():AddressItem {
-    return new AddressItem(ItemType.ADDR_NULL, 0);
-  }
-
-  /**
-   * Build an connected based CPF Address Item
-   * @param {number} connectionId connection identifier
-   * @return {AddressItem} specific Address item instance
-   */
-  public static buildConnectedAddressItem(connectionId:number):AddressItem {
-    return new AddressItem(ItemType.ADDR_CONNECTION_BASED, 4,
-        [connectionId]);
-  }
-
-  /**
-   * Build an connected based CPF Address Item
-   * @param {number} connectionId connection identifier
-   * @param {number} sequenceNbr sequence number
-   * @return {AddressItem} specific Address item instance
-   */
-  public static buildSequencedAddressItem(connectionId:number,
-      sequenceNbr:number) {
-    return new AddressItem(ItemType.ADDR_SEQUENCED_ADDRESS, 8,
-        [connectionId, sequenceNbr]);
-  }
-
-  /**
    * Convert the AdressItem instance to JSON
    * @return {object} a AdressItem JSON representation
    */

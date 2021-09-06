@@ -1,12 +1,7 @@
 
 // eslint-disable-next-line max-len
-import {SocketAddrItem} from '../../lib/enip/encapsulation/data/item/socketaddr_item';
-import {DeviceProfile} from '../../lib/cip/identity/device_profile';
-import {DeviceState} from '../../lib/cip/identity/device_state';
-import {IdentityObject} from '../../lib/cip/identity/identity_object';
-import {ListIdentity} from '../../lib/enip/encapsulation/data/list_identity';
-// eslint-disable-next-line max-len
-import {ListIdentityItem} from '../../lib/enip/encapsulation/data/item/list_identity_item';
+import {ENIPData} from 'enip/encapsulation';
+import {Identity, Device} from 'cip/identity';
 
 describe('Parse/Encode an list identity encapsulated data response', ()=> {
   // eslint-disable-next-line max-len
@@ -45,30 +40,30 @@ describe('Parse/Encode an list identity encapsulated data response', ()=> {
 
   test('Parse ListIdentity buffer', ()=> {
     const liBuff = Buffer.from(listIdentityItemHexStr, 'hex');
-    const listIdentity = ListIdentity.parse(liBuff);
+    const listIdentity = ENIPData.ListIdentity.parse(liBuff);
     expect(listIdentity.toJSON()).toStrictEqual(lisIdentityObj);
   });
   test('Encode ListIdentity object', ()=> {
-    const socketAddress = new SocketAddrItem('192.168.1.73');
-    const idObject = new IdentityObject(356,
-        DeviceProfile.CommunicationsAdapter,
+    const socketAddress = new ENIPData.Item.SocketAddr('192.168.1.73');
+    const cipIdentity = new Identity(356,
+        Device.Profile.CommunicationsAdapter,
         4,
         3,
         1,
         0x0034,
         0xf420d721,
         'FANUC Robot R30iB+',
-        DeviceState.DefaultGetAttributesAll);
+        Device.State.DefaultGetAttributesAll);
 
     // BUG: by default the sinFamily is 0x0002 (2 write on 2 byte in BE byte order)
     // but the fanuc controler send 0x0200 (512 write on 2 bytes in BE)
     socketAddress.sinFamilly = 512;
 
-    const identityItem = new ListIdentityItem(
-        idObject,
+    const identityItem = new ENIPData.Item.ListIdentity(
+        cipIdentity,
         socketAddress);
 
-    const listIdentity = new ListIdentity(identityItem);
+    const listIdentity = new ENIPData.ListIdentity(identityItem);
     const listIdentityBuff = listIdentity.encode();
 
     expect(listIdentityBuff.toString('hex')).toBe(listIdentityItemHexStr);

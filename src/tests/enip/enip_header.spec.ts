@@ -1,5 +1,5 @@
 
-import {EnipHeader} from '../../lib/enip/encapsulation/header/enip_header';
+import {ENIPHeader} from 'enip/encapsulation';
 
 describe('ENIP header encoding and parsing', ()=> {
   // eslint-disable-next-line max-len
@@ -38,31 +38,31 @@ describe('ENIP header encoding and parsing', ()=> {
 
   test('parse listIdentity request header', ()=> {
     const liReqBuffer = Buffer.from(listIdentityReqHexStr, 'hex');
-    const header = EnipHeader.parse(liReqBuffer);
+    const header = ENIPHeader.Header.parse(liReqBuffer);
     expect(header.toJSON()).toStrictEqual(listIdentityReqObject);
   });
   test('parse register session request header', ()=> {
     const sessionReqBuffer = Buffer.from(registerSessionReqHexStr, 'hex');
-    const header = EnipHeader.parse(sessionReqBuffer);
+    const header = ENIPHeader.Header.parse(sessionReqBuffer);
     expect(header.toJSON()).toStrictEqual(registerSessionReqObject);
   });
   test('parse get attribute single request header', ()=> {
     const srrdReqBuffer = Buffer.from(sendRRdataReqHexStr, 'hex');
-    const header = EnipHeader.parse(srrdReqBuffer);
+    const header = ENIPHeader.Header.parse(srrdReqBuffer);
     expect(header.toJSON()).toStrictEqual(sendRRdataReqObject);
   });
   test('encode listIdentity request header', ()=> {
-    const header = EnipHeader.buildListIdentityHeader();
+    const header = ENIPHeader.buildListIdentity();
     expect(header.toJSON()).toStrictEqual(listIdentityReqObject);
     expect(header.encode().toString('hex')).toBe(listIdentityReqHexStr);
   });
   test('encode register session request header', ()=> {
-    const header = EnipHeader.buildRegSessionHeader();
+    const header = ENIPHeader.buildRegSession();
     expect(header.toJSON()).toStrictEqual(registerSessionReqObject);
     expect(header.encode().toString('hex')).toBe(registerSessionReqHexStr);
   });
   test('encode sendRRdata request header', ()=> {
-    const header = EnipHeader.buildSendRRDataHeader(0x3bb53df0, 24);
+    const header = ENIPHeader.buildSendRR(0x3bb53df0, 24);
     expect(header.toJSON()).toStrictEqual(sendRRdataReqObject);
     expect(header.encode().toString('hex')).toBe(sendRRdataReqHexStr);
   });

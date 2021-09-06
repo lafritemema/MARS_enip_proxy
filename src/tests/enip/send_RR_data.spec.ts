@@ -1,14 +1,7 @@
 import {SendRRData} from '../../lib/enip/encapsulation/data/send_RR_data';
-import {EPath} from '../../lib/cip/epath';
-import {RequestMessage, ResponseMessage} from '../../lib/cip/message/message';
-import {MessageService} from '../../lib/cip/message/message_service';
-import {ResponseStatus} from '../../lib/cip/message/response_status';
-import {LogicalFormat} from '../../lib/cip/segment/logical/logical_format';
-import {LogicalSegment} from '../../lib/cip/segment/logical/logical_segment';
-import {LogicalType} from '../../lib/cip/segment/logical/logical_type';
-import {EnipCPF} from '../../lib/enip/encapsulation/data/cpf';
-import {DataItem} from '../../lib/enip/encapsulation/data/item/data_item';
-import {AddressItem} from '../../lib/enip/encapsulation/data/item/address_item';
+import {EPath, Logical} from 'cip/epath';
+import {CIPMessage} from 'cip/message';
+import {ENIPData} from 'enip/encapsulation';
 
 describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
   const sendRRHexStrReq = '000000000000020000000000b20008000e03206b24013005';
@@ -92,27 +85,28 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
     expect(srrData.toJSON()).toStrictEqual(sendRRResObj);
   });
   test('Encode a SendRR encapsulated data object => Request', ()=> {
-    const classSeg = new LogicalSegment(LogicalType.CLASS_ID,
-        LogicalFormat.BIT_8,
+    const classSeg = new Logical.Segment(Logical.Type.CLASS_ID,
+        Logical.Format.BIT_8,
         0x6b);
 
-    const instanceSeg = new LogicalSegment(LogicalType.INSTANCE_ID,
-        LogicalFormat.BIT_8,
+    const instanceSeg = new Logical.Segment(Logical.Type.INSTANCE_ID,
+        Logical.Format.BIT_8,
         1);
 
-    const attributeSeg = new LogicalSegment(LogicalType.ATTRIBUTE_ID,
-        LogicalFormat.BIT_8,
+    const attributeSeg = new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
+        Logical.Format.BIT_8,
         5);
 
     const epath = new EPath([classSeg, instanceSeg, attributeSeg]);
-    const reqMessage = new RequestMessage(MessageService.GET_ATTRIBUTE_SINGLE,
+    const reqMessage = new CIPMessage.Request(
+        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
         epath);
 
-    const addressItem = AddressItem.buildNullAddressItem();
-    const dataItem = DataItem.buildUnconnectedDataItem(reqMessage);
-    const cpf = new EnipCPF(addressItem, dataItem);
+    const addressItem = ENIPData.Item.buildNullAddressItem();
+    const dataItem = ENIPData.Item.buildUnconnectedDataItem(reqMessage);
+    const cpf = new ENIPData.CPF(addressItem, dataItem);
 
-    const srrData = new SendRRData(cpf);
+    const srrData = new ENIPData.SendRR(cpf);
     const srrDataBuff = srrData.encode();
 
     expect(srrDataBuff.toString('hex')).toBe(sendRRHexStrReq);
@@ -120,15 +114,16 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
   test('Encode a SendRR encapsulated data object => Response', ()=> {
     const dataHexStr = '34000000';
     const dataBuffer = Buffer.from(dataHexStr, 'hex');
-    const respMessage = new ResponseMessage(MessageService.GET_ATTRIBUTE_SINGLE,
-        ResponseStatus.Success,
+    const respMessage = new CIPMessage.Response(
+        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
+        CIPMessage.Status.Success,
         dataBuffer);
 
-    const addressItem = AddressItem.buildNullAddressItem();
-    const dataItem = DataItem.buildUnconnectedDataItem(respMessage);
+    const addressItem = ENIPData.Item.buildNullAddressItem();
+    const dataItem = ENIPData.Item.buildUnconnectedDataItem(respMessage);
 
-    const cpf = new EnipCPF(addressItem, dataItem);
-    const srrData = new SendRRData(cpf);
+    const cpf = new ENIPData.CPF(addressItem, dataItem);
+    const srrData = new ENIPData.SendRR(cpf);
     const srrBuff = srrData.encode();
 
     expect(srrBuff.toString('hex')).toBe(sendRRHexStrRes);

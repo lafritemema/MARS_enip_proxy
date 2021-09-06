@@ -1,52 +1,71 @@
-import {Item} from './item';
-import {ItemType, ItemTypeObject, ItemTypeKey} from './item_type';
+import {Message as CipMessage} from 'cip/message/message';
+import {Item as GItem} from './item';
+import {AddressItem} from './address_item';
+import {DataItem} from './data_item';
+import {ListIdentityItem} from './list_identity_item';
+import {SocketAddrItem} from './socketaddr_item';
+import {ItemType} from './item_type';
+import {ItemIterator, ItemIteration} from './item_iterator';
 
+const Item = {
+  Item: GItem,
+  Address: AddressItem,
+  Data: DataItem,
+  ListIdentity: ListIdentityItem,
+  SocketAddr: SocketAddrItem,
+  Type: ItemType,
 
-/**
-   * Parse the buffer describing the Item metadata
-   * @param {Buffer} metaBuffer buffer describing the Item
-   * @return {Item} a Item instance
+  /**
+   * Build an Unconnected Data Item
+   * @param {Message} data a CIP Message instance describing the data
+   * @return {DataItem} specific Data item instance
    */
-function parseMeta(metaBuffer:Buffer):Item {
-  const typeCode = metaBuffer.readUInt16LE(0);
-  const length = metaBuffer.readUInt16LE(2);
-  // ENHANCE : integrate best optimized item type check
-  checkItemType(typeCode);
-  const itemClass = ItemTypeObject[<ItemTypeKey>ItemType[typeCode]];
+  buildUnconnectedDataItem(data:CipMessage) : DataItem {
+    return new DataItem(Item.Type.DATA_UNCONNECTED_MESSAGE, data.length,
+        data);
+  },
 
-  // ENHANCE : fix typescript error
-  // @ts-ignore
-  return createTypedInstance(itemClass, typeCode, length);
-}
+  /**
+   * Build an Unconnected Data Item
+   * @param {Message} data a CIP Message instance describing the data
+   * @return {DataItem} specific Data item instance
+   */
+  buildConnectedDataItem(data:CipMessage) : DataItem {
+    return new DataItem(Item.Type.DATA_CONNECTED_TRANSPORT, data.length,
+        data);
+  },
 
-/**
- * Generic function to create a typed item instance from a metaBuffer
- * @param {class} i  typed item class
- * @param {number} type item type code
- * @param {number} length item data length
- * @return {Item} a typed item heritate from Item
-*/
-function createTypedInstance<I extends Item>(i: new() => I,
-    type:number,
-    length:number):I {
-  // eslint-disable-next-line new-cap
-  const typedItem = new i();
-  typedItem.dataLength = length;
-  typedItem.type=type;
+  /**
+   * Build an Null CPF Address Item
+   * @return {AddressItem} specific Address item instance
+   */
+  buildNullAddressItem():AddressItem {
+    return new AddressItem(ItemType.ADDR_NULL, 0);
+  },
 
-  return typedItem;
-}
+  /**
+   * Build an connected based CPF Address Item
+   * @param {number} connectionId connection identifier
+   * @return {AddressItem} specific Address item instance
+   */
+  buildConnectedAddressItem(connectionId:number):AddressItem {
+    return new AddressItem(ItemType.ADDR_CONNECTION_BASED, 4,
+        [connectionId]);
+  },
 
-/**
- * Check if the type code is conform
- * raise an Error if not
- * @param {number} typeCode code to check
- */
-function checkItemType(typeCode:number):void {
-  if (ItemType[typeCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The Item type <${typeCode}> is not an available Item type`);
-  }
-}
+  /**
+   * Build an connected based CPF Address Item
+   * @param {number} connectionId connection identifier
+   * @param {number} sequenceNbr sequence number
+   * @return {AddressItem} specific Address item instance
+   */
+  buildSequencedAddressItem(connectionId:number,
+      sequenceNbr:number) {
+    return new AddressItem(ItemType.ADDR_SEQUENCED_ADDRESS, 8,
+        [connectionId, sequenceNbr]);
+  },
+};
 
-export {parseMeta};
+export {Item,
+  ItemIterator,
+  ItemIteration};

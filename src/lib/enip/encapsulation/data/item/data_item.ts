@@ -29,28 +29,6 @@ export class DataItem extends Item {
   }
 
   /**
-   * Build an Unconnected Data Item
-   * @param {Message} data a CIP Message instance describing the data
-   * @return {DataItem} specific Data item instance
-   */
-  public static buildUnconnectedDataItem(data:CIPMessage) : DataItem {
-    return new DataItem(ItemType.DATA_UNCONNECTED_MESSAGE, data.length,
-        data);
-  }
-
-  /**
-   * Build an Unconnected Data Item
-   * @param {Message} data a CIP Message instance describing the data
-   * @return {DataItem} specific Data item instance
-   */
-  public static buildConnectedDataItem(data:CIPMessage) : DataItem {
-    return new DataItem(ItemType.DATA_CONNECTED_TRANSPORT, data.length,
-        data);
-  }
-
-  // ENHANCE: integrate sockaddr info item
-
-  /**
    * Convert the DataItem instance to JSON
    * @return {object} a DataItem JSON representation
    */

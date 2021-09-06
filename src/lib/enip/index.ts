@@ -1,4 +1,12 @@
-import {Status} from './encapsulation/header/status';
-import {CPF} from './encapsulation/cpf/cpf';
+import {EnipMessage} from './enip_message';
+import {ENIPHeader, ENIPData} from './encapsulation';
 
-export {Status, CPF};
+const ENIP = {
+  Command: ENIPHeader.Command,
+  Message: EnipMessage,
+  Status: ENIPHeader.Status,
+  Header: ENIPHeader,
+  Data: ENIPData,
+};
+
+export {ENIP};
