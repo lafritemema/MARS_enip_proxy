@@ -1,5 +1,5 @@
 import {DeviceProfile} from './device_profile';
-import {Identity} from './identity';
+import {Identity, IdentityJSONObject} from './identity';
 import {DeviceState} from './device_state';
 
 const Device = {
@@ -10,4 +10,5 @@ const Device = {
 export {
   Device,
   Identity,
+  IdentityJSONObject,
 };

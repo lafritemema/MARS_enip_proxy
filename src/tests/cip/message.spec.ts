@@ -1,5 +1,5 @@
 import {EPath, Logical} from 'cip/epath';
-import {CipMessage} from 'cip/message';
+import {CIPMessage} from 'cip/message';
 
 describe('CIP message parsing and encoding', ()=> {
   const requestHexString = '0e03206b24013005'; // get attribute single request
@@ -37,13 +37,13 @@ describe('CIP message parsing and encoding', ()=> {
 
   test('Parse a get attribute single request buffer', ()=> {
     const requestBuffer = Buffer.from(requestHexString, 'hex');
-    const message = CipMessage.Message.parse(requestBuffer);
+    const message = CIPMessage.Message.parse(requestBuffer);
 
     expect(message.toJSON()).toStrictEqual(reqMsgObj);
   });
   test('Parse a get attribute single reponse buffer', ()=> {
     const responseBuffer = Buffer.from(responseHexString, 'hex');
-    const message = CipMessage.Message.parse(responseBuffer);
+    const message = CIPMessage.Message.parse(responseBuffer);
 
     expect(message.toJSON()).toStrictEqual(respMsgObj);
   });
@@ -62,8 +62,8 @@ describe('CIP message parsing and encoding', ()=> {
         5);
 
     const epath = new EPath([classSeg, instanceSeg, attributeSeg]);
-    const reqMessage = new CipMessage.Request(
-        CipMessage.Service.GET_ATTRIBUTE_SINGLE,
+    const reqMessage = new CIPMessage.Request(
+        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
         epath);
 
     const rBuffer = reqMessage.encode();
@@ -72,9 +72,9 @@ describe('CIP message parsing and encoding', ()=> {
   test('Encode a get attribute single response buffer', () => {
     const dataHexStr = '34000000';
     const dataBuffer = Buffer.from(dataHexStr, 'hex');
-    const respMessage = new CipMessage.Response(
-        CipMessage.Service.GET_ATTRIBUTE_SINGLE,
-        CipMessage.Status.Success,
+    const respMessage = new CIPMessage.Response(
+        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
+        CIPMessage.Status.Success,
         dataBuffer);
     const respBuffer = respMessage.encode();
     expect(respBuffer.toString('hex')).toBe(responseHexString);

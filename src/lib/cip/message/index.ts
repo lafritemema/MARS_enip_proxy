@@ -6,7 +6,7 @@ import {MessageService} from './message_service';
 import {MessageType} from './message_type';
 import {ResponseStatus} from './response_status';
 
-const CipMessage = {
+const CIPMessage = {
   Message: Message,
   Request: RequestMessage,
   Response: ResponseMessage,
@@ -15,4 +15,4 @@ const CipMessage = {
   Status: ResponseStatus,
 };
 
-export {CipMessage};
+export {CIPMessage};
