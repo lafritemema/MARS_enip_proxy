@@ -148,16 +148,7 @@ export default {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: [
-    // "**/__tests__/**/*.[jt]s?(x)",
-    // "**/?(*.)+(spec|test).[tj]s?(x)"
-    // '**/src/tests/cip/segment.spec.ts',
-    // '**/src/tests/cip/epath.spec.ts',
-    // '**/src/tests/cip/message.spec.ts',
-    // '**/src/tests/utils/buffer_iterator.spec.ts',
-    '**/src/tests/enip/cpf.spec.ts',
-    // '**/src/tests/cip/identity_object.spec.ts',
-  ],
+  
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
@@ -180,10 +171,38 @@ export default {
   // timers: "real",
 
   // A map from regular expressions to paths to transformers
+  /* transform: {
+    '^.+\\.ts$': 'ts-jest',
+  },*/
+
   preset: 'ts-jest',
-  transform: {
-    '^.+\\.tsx?$': 'babel-jest',
+  globals: {
+    'ts-jest': {
+      tsConfig: 'tsconfig.json',
+    },
   },
+  moduleNameMapper: {
+    'enip-proxy': '<rootDir>/src/lib',
+    '^utils': '<rootDir>/src/lib/utils',
+    '^cip/(.*)': '<rootDir>/src/lib/cip/$1',
+    '^enip/(.*)': '<rootDir>/src/lib/enip/$1',
+  },
+  testMatch: [
+    // "**/__tests__/**/*.[jt]s?(x)",
+    // "**/?(*.)+(spec|test).[tj]s?(x)"
+    '**/src/tests/cip/segment.spec.ts',
+    '**/src/tests/cip/epath.spec.ts',
+    '**/src/tests/cip/message.spec.ts',
+    '**/src/tests/utils/buffer_iterator.spec.ts',
+    '**/src/tests/enip/cpf.spec.ts',
+    '**/src/tests/cip/identity.spec.ts',
+    '**/src/tests/enip/enip_header.spec.ts',
+    '**/src/tests/enip/list_identity.spec.ts',
+    '**/src/tests/enip/register_session.spec.ts',
+    '**/src/tests/enip/send_RR_data.spec.ts',
+    // '**/src/tests/proxy/enip.spec.ts',
+  ],
+
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
   //   "\\\\node_modules\\\\",

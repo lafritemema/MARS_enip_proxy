@@ -2,16 +2,25 @@
     "extends": "@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
       "preserveConstEnums": true,
-      "module": "commonjs",
+      "module": "es6",
+      "moduleResolution":"node",
+      "esModuleInterop": true,
       "target": "es6",
       "jsx": "preserve",
       "strictFunctionTypes": true,
       "sourceMap": true,
       "outDir": "bin",
       "resolveJsonModule": true,
-      // ENHANCE : 
-      "noStrictGenericChecks" : true
+      "noStrictGenericChecks" : true,
+      "baseUrl": ".",
+      "paths": {
+        "utils": ["src/lib/utils"],
+        // "cip": ["src/lib/cip"],
+        "cip/*": ["src/lib/cip/*"],
+        "enip": ["src/lib/enip"],
+        "enip/*": ["src/lib/enip/*"]// This mapping is relative to "baseUrl"
+      }
     },
-    "include": ["src/lib/**/*"],
-    "exclude": ["node_modules" , "**/*.spec.ts", "src/tests/**/*"],
+    "include": ["src/lib/**/*", "src/tests/**/*"],
+    "exclude": ["node_modules"],
 }
