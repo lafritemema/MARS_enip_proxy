@@ -2,7 +2,7 @@ import {BufferIterator} from '../../utils/buffer_iterator';
 import {DeviceProfile} from './device_profile';
 import {DeviceState} from './device_state';
 
-// ENHANCE : improve access to vendor name 
+// ENHANCE : improve access to vendor name
 // eslint-disable-next-line max-len
 const VendorName:Record<number, string> = require('./vendor_name.json');
 
@@ -21,7 +21,7 @@ export interface IdentityJSONObject extends Object {
 /**
  * Class describing a CIP Identity object
  */
-export class IdentityObject {
+export class Identity {
   private _vendorId:number;
   private _deviceType:number;
   private _productCode:number;
@@ -76,9 +76,9 @@ export class IdentityObject {
   /**
    * Parse the buffer describing the Identity object
    * @param {Buffer} idObjectBuffer buffer describing the Identity object
-   * @return {IdentityObject} IdentityObject instance
+   * @return {Identity} Identity instance
    */
-  public static parse(idObjectBuffer:Buffer):IdentityObject {
+  public static parse(idObjectBuffer:Buffer):Identity {
     const buffIt = new BufferIterator(idObjectBuffer);
 
     // get the vendorid => 2 first bytes
@@ -105,7 +105,7 @@ export class IdentityObject {
     // get the product state
     const state = buffIt.next().value.readUInt8();
 
-    return new IdentityObject(vendorId,
+    return new Identity(vendorId,
         deviceType,
         productCode,
         majorRev,
@@ -117,8 +117,8 @@ export class IdentityObject {
   };
 
   /**
-   * Build a buffer describing the IdentityObject instance
-   * @return {Buffer} buffer describing the IdentityObject instance
+   * Build a buffer describing the Identity instance
+   * @return {Buffer} buffer describing the Identity instance
    */
   public encode():Buffer {
     // create a buffer to store informations

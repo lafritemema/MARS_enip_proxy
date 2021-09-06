@@ -1,7 +1,12 @@
-import {EPath} from '../epath';
-import {MessageType} from './message_type';
-import {MessageService} from './message_service';
-import {ResponseStatus} from './response_status';
+import {EPath} from '../epath/epath';
+import {MessageType,
+  checkTypeCode,
+  extractType} from './message_type';
+import {MessageService,
+  checkServiceCode,
+  extractService} from './message_service';
+import {ResponseStatus,
+  checkStatusCode} from './response_status';
 
 /**
  * abstract class describing a CIP message
@@ -79,49 +84,6 @@ export abstract class Message {
     public abstract toJSON():object;
     public abstract encode():Buffer;
     public abstract get length():number;
-}
-
-/**
- * extract the message type code (Request:0/Response:1) from the Type&Service code
- * @param {number} code Type&Service code
- * @return {number} type code
- */
-function extractType(code:number) : number {
-  // apply a filter 10000000
-  // and a right shift of 7
-  return (code & 128) >>> 7;
-}
-
-/**
- * extract the message service code from the Type&Service code
- * @param {number} code Type&Service code
- * @return {number} service code
- */
-function extractService(code:number) {
-  // apply a filter 01111111
-  return code & 0x7f;
-}
-
-/**
- * Check if the Message Type code is conform
- * @param {number} typeCode type code
- */
-function checkTypeCode(typeCode:number) {
-  if (MessageType[typeCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The message type <${typeCode}> is not an available message type`);
-  }
-}
-
-/**
- * Check if the Message Type code is conform
- * @param {number} serviceCode type code
- */
-function checkServiceCode(serviceCode:number) {
-  if (MessageService[serviceCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The message service <${serviceCode}> is not an available message service`);
-  }
 }
 
 /**
@@ -370,15 +332,4 @@ export class ResponseMessage extends Message {
   }
 }
 
-/**
- * Check if the Message Type code is conform
- * @param {number} statusCode type code
- */
-function checkStatusCode(statusCode:number):void {
-  // @ts-ignore
-  if (ResponseStatus[statusCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The message status <${statusCode}> is not an available message status`);
-  }
-}
 

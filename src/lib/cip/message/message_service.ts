@@ -17,3 +17,24 @@ export enum MessageService {
   WRITE_TAG_FRAGMENTED= 0x53,
   READ_MODIFY_WRITE_TAG= 0x4e
 };
+
+/**
+ * extract the message service code from the Type&Service code
+ * @param {number} code Type&Service code
+ * @return {number} service code
+ */
+export function extractService(code:number) {
+  // apply a filter 01111111
+  return code & 0x7f;
+}
+
+/**
+ * Check if the Message Type code is conform
+ * @param {number} serviceCode type code
+ */
+export function checkServiceCode(serviceCode:number) {
+  if (MessageService[serviceCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The message service <${serviceCode}> is not an available message service`);
+  }
+}

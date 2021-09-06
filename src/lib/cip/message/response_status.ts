@@ -45,3 +45,15 @@ export enum ResponseStatus {
   Group2OnlyServerGeneralFailure= 0x2A,
   UnknownModbusError= 0x2B
 }
+
+/**
+ * Check if the Message Type code is conform
+ * @param {number} statusCode type code
+ */
+export function checkStatusCode(statusCode:number):void {
+  // @ts-ignore
+  if (ResponseStatus[statusCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The message status <${statusCode}> is not an available message status`);
+  }
+}

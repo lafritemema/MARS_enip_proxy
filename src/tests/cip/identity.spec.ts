@@ -1,6 +1,4 @@
-import {DeviceProfile} from '../../lib/cip/identity/device_profile';
-import {DeviceState} from '../../lib/cip/identity/device_state';
-import {IdentityObject} from '../../lib/cip/identity/identity_object';
+import {Identity, Device} from 'cip/identity';
 
 describe('CIP identity object parsing and encoding', ()=> {
   // eslint-disable-next-line max-len
@@ -20,20 +18,20 @@ describe('CIP identity object parsing and encoding', ()=> {
 
   test('CIP identity object parsing', ()=> {
     const idObjectBuff = Buffer.from(identityHexString, 'hex');
-    const idObject = IdentityObject.parse(idObjectBuff);
+    const idObject = Identity.parse(idObjectBuff);
     expect(idObject.toJSON()).toStrictEqual(identityJSON);
   });
 
   test('CIP Indentity object encoding', ()=> {
-    const idObject = new IdentityObject(356,
-        DeviceProfile.CommunicationsAdapter,
+    const idObject = new Identity(356,
+        Device.Profile.CommunicationsAdapter,
         4,
         3,
         1,
         0x0034,
         0xf420d721,
         'FANUC Robot R30iB+',
-        DeviceState.DefaultGetAttributesAll);
+        Device.State.DefaultGetAttributesAll);
     const idObjectBuff = idObject.encode();
     expect(idObjectBuff.toString('hex')).toBe(identityHexString);
   });

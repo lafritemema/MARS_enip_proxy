@@ -1,8 +1,11 @@
 import {Segment} from '../segment';
-import {LogicalType} from './logical_type';
+import {LogicalType,
+  extractLogicalType,
+  encodeLogicalType} from './logical_type';
 import {LogicalFormat,
-  _LogicalFormatPorcessor,
-  LogicalFormatObject} from './logical_format';
+  LogicalFormatObject,
+  extractLogicalFormat,
+  getLogicalProcessor} from './logical_format';
 import {SegmentType} from '../segment_type';
 
 // import {BitVector} from '../utils/bitvector';
@@ -17,7 +20,7 @@ export class LogicalSegment extends Segment {
     private _type : number;
     private _format: number;
     private _value : number;
-    private _logicalProcessor:LogicalFormatObject|undefined;
+    private _logicalProcessor:LogicalFormatObject;
 
     /**
      * @constructor
@@ -25,8 +28,8 @@ export class LogicalSegment extends Segment {
      * @param {string} format size type of the value encapsulated in the segment, default '8_BIT'
      * @param {number} value data encapsulated in the segment
      */
-    constructor(type:number=-1,
-        format:number=-1,
+    public constructor(type:number,
+        format:number,
         value:number=0) {
       // checkTypeCode(type);
       // checkFormatCode(format);
@@ -35,16 +38,14 @@ export class LogicalSegment extends Segment {
       this._type = type;
       this._format = format;
       this._value = value;
-      this._logicalProcessor = this._format!=-1 ?
-        _LogicalFormatPorcessor[LogicalFormat[this._format]] :
-        undefined;
+      this._logicalProcessor = getLogicalProcessor(this._format);
     }
 
     /**
      * Get the segment value size in bytes
      * @return {number} value size in byte
      */
-    get dataLength() : number {
+    public get dataLength() : number {
       return this._logicalProcessor ? this._logicalProcessor.size : 0;
     }
 
@@ -52,27 +53,21 @@ export class LogicalSegment extends Segment {
      * Get the segment size in bytes
      * @return {number} value size in byte
      */
-    get length() : number {
+    public get length() : number {
       return this._logicalProcessor ? this._logicalProcessor.size + 1 : 0;
     }
 
     /**
-     * Parse metadata frame
+     * Build a LogicalSegment instance from a metadata datagram
      * @param {Buffer} metaBuffer metadata buffer
+     * @return {LogicalSegment} LogicalSegment instance
      */
-    public parseMeta(metaBuffer : Buffer): void {
-      const fcode = decodeLogicalFormat(metaBuffer);
+    public static parseMeta(metaBuffer : Buffer): LogicalSegment {
+      const fcode = extractLogicalFormat(metaBuffer);
       // ENHANCE : integrate best optimized code check
-      checkFormatCode(fcode);
+      const tcode = extractLogicalType(metaBuffer);
 
-      const lcode = decodeLogicalType(metaBuffer);
-      checkTypeCode(lcode);
-
-      this._format = fcode;
-      this._type = lcode;
-
-      // eslint-disable-next-line max-len
-      this._logicalProcessor = _LogicalFormatPorcessor[LogicalFormat[this._format]];
+      return new LogicalSegment(tcode, fcode);
     }
 
     /**
@@ -137,64 +132,3 @@ export class LogicalSegment extends Segment {
     }
 }
 
-/**
- * Extract the logical segment type code from the metadata frame
- * @param {Buffer} metaBuffer metadata frame
- * @return {number} a numeric code describing the logical segment type
- */
-function decodeLogicalType(metaBuffer:Buffer) : number {
-  // apply a binary filter (00011100)
-  // and a right shift of 2
-  // to get the logical type (bit 4 to 6 of buffer)
-  const ltcode = (metaBuffer.readUInt8() & 0x1c) >>> 2;
-  // ENHANCE : integrate best optimized code check
-  checkTypeCode(ltcode);
-
-  return ltcode;
-}
-
-/**
- * Extract the logical segment format code from the metadata frame
- * @param {Buffer} metaBuffer metadata frame
- * @return {number} a numeric code describing the logical segment format
-*/
-function decodeLogicalFormat(metaBuffer:Buffer) : number {
-  // apply a binary filter (00000011)
-  // to get the logical format (bit 7 and 8 of buffer)
-  const lfcode = metaBuffer.readUInt8() & 3;
-  // ENHANCE : integrate best optimized code check
-  checkFormatCode(lfcode);
-
-  return lfcode;
-}
-
-/**
- * Build the logical type code for metadata frame generation
- * @param {number} typeCode logical segment type
- * @return {number} code for metadata frame generation
- */
-function encodeLogicalType(typeCode:number):number {
-  return typeCode << 2;
-}
-
-/**
- * Check if the Logical Segment Format code is conform
- * @param {number} formatCode format code
- */
-function checkFormatCode(formatCode : number) :void {
-  if (LogicalFormat[formatCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The logical segment format <${formatCode}> is not a available logical segment format`);
-  }
-}
-
-/**
- * Check if the Logical Segment Type code is conform
- * @param {number} typeCode type code
- */
-function checkTypeCode(typeCode : number) :void {
-  if (LogicalType[typeCode] == undefined) {
-    // eslint-disable-next-line max-len
-    throw new Error(`ERROR: The logical segment format <${typeCode}> is not a available logical segment format`);
-  }
-}

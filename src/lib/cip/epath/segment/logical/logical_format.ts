@@ -25,7 +25,7 @@ export enum LogicalFormat {
  * constant to enumerate size and processing informations
  * according logical segment type 
  */
-export const _LogicalFormatPorcessor: Record<string, LogicalFormatObject> = {
+export const LogicalFormatPorcessor: Record<string, LogicalFormatObject> = {
   'BIT_8': {size: 1,
     read: Buffer.prototype.readUInt8,
     write: Buffer.prototype.writeUInt8},
@@ -39,3 +39,33 @@ export const _LogicalFormatPorcessor: Record<string, LogicalFormatObject> = {
     read: Buffer.prototype.readUInt32LE,
     write: Buffer.prototype.writeUInt32LE},
 };
+
+/**
+ * Check if the Logical Segment Format code is conform
+ * @param {number} formatCode format code
+ */
+function checkFormatCode(formatCode : number) :void {
+  if (LogicalFormat[formatCode] == undefined) {
+    // eslint-disable-next-line max-len
+    throw new Error(`ERROR: The logical segment format <${formatCode}> is not a available logical segment format`);
+  }
+}
+
+/**
+ * Extract the logical segment format code from the metadata frame
+ * @param {Buffer} metaBuffer metadata frame
+ * @return {number} a numeric code describing the logical segment format
+*/
+export function extractLogicalFormat(metaBuffer:Buffer) : number {
+  // apply a binary filter (00000011)
+  // to get the logical format (bit 7 and 8 of buffer)
+  const lfcode = metaBuffer.readUInt8() & 3;
+  // ENHANCE : integrate best optimized code check
+  checkFormatCode(lfcode);
+
+  return lfcode;
+}
+
+export function getLogicalProcessor(formatCode:number) {
+  return LogicalFormatPorcessor[LogicalFormat[formatCode]];
+}

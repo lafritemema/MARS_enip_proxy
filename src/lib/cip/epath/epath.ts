@@ -1,19 +1,22 @@
 // import {SegmentFactory} from './segments/segment_factory';
 // import {Segment} from './segments/segment';
 
-import * as SEGMENT from './segment';
+import {Segment,
+  SegmentIterator,
+  SegmentIteration} from './segment';
+
 
 /**
  * @class EPath
  */
 export class EPath {
-  private _segmentList:SEGMENT.Segment[];
+  private _segmentList:Segment[];
 
   /**
    * @constructor
    * @param {Segment[]} segments list of segments contained in the path
    */
-  public constructor(segments:SEGMENT.Segment[]=[]) {
+  public constructor(segments:Segment[]=[]) {
     this._segmentList=segments;
   }
 
@@ -26,22 +29,15 @@ export class EPath {
     // get only the 3 higher bits describing the segment to get the segment type
     // to obtain the type code
 
-    const segments : SEGMENT.Segment[] = [];
-    let cursor:number = 0;
+    const segments : Segment[] = [];
 
-    while (cursor < pathBuffer.length) {
-      // segment.parseMeta(pathBuffer.slice(cursor, cursor+1));
-      // eslint-disable-next-line max-len
-      const typedSegment:SEGMENT.Segment = SEGMENT.parseMeta(pathBuffer.slice(cursor, cursor+1));
-      const dataBuffer = pathBuffer.slice(
-          cursor + 1,
-          cursor + typedSegment.dataLength + 1,
-      );
+    const segIterator = new SegmentIterator(pathBuffer);
+    let segIt:SegmentIteration = segIterator.next();
 
-      typedSegment.parseData(dataBuffer);
-
-      segments.push(typedSegment);
-      cursor += typedSegment.dataLength+1;
+    while (!segIt.done) {
+      const segment = <Segment>segIt.value; // add segment type to avoid ts error
+      segments.push(segment);
+      segIt = segIterator.next();
     }
 
     return new EPath(segments);
@@ -69,19 +65,11 @@ export class EPath {
   }
 
   /**
-   * Get the list of segments
-   * @return {Segment[]} list of segment
-   */
-  // public getAllSegments() : SEGMENT.Segment[] {
-  //  return this._segmentList;
-  // }
-
-  /**
    * Get the segment at a specified index in the EPath
    * @param {number} index segment index
    * @return {Segment} the segment at the specified index
    */
-  public getSegment(index:number):SEGMENT.Segment {
+  public getSegment(index:number):Segment {
     return this._segmentList[index];
   }
 
@@ -89,8 +77,8 @@ export class EPath {
    * Add one or several segments in the path
    * @param {Segment|Segment[]} segment segment to add
    */
-  public addSegment(segment:SEGMENT.Segment|SEGMENT.Segment[]):void {
-    if (segment instanceof SEGMENT.Segment) {
+  public addSegment(segment:Segment|Segment[]):void {
+    if (segment instanceof Segment) {
       this._segmentList.push(segment);
     } else {
       this._segmentList.concat(segment);
@@ -118,5 +106,5 @@ export class EPath {
    */
   public toJSON():object {
     return this._segmentList.map((s)=>s.toJSON());
-  }
+  };
 }
