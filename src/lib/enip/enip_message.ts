@@ -1,17 +1,13 @@
-import {BufferIterator} from '../utils/buffer_iterator';
-import {EnipData} from './encapsulation/data/enip_data';
-import {ListIdentity} from './encapsulation/data/list_identity';
-import {RegisterSession} from './encapsulation/data/register_session';
-import {SendRRData} from './encapsulation/data/send_RR_data';
-import {EnipHeader,
-  EnipHeaderJSONObject} from './encapsulation/header/enip_header';
+import {BufferIterator} from 'utils';
+import EnipData, * as ENIDATA from './encapsulation/data';
+import EnipHeader,
+{EnipHeaderJSON} from './encapsulation/header';
 
 // ENHANCE : improve interface for ENIP data
 interface EnipMessageJSONObject {
-  enipHeader:EnipHeaderJSONObject,
+  enipHeader:EnipHeaderJSON,
   enipData:object|null
 }
-
 
 /**
  * Clas describing an ENIP packet
@@ -48,13 +44,13 @@ export class EnipMessage {
     // ENHANCE : improve EnipData object selection
     switch (header.command) {
       case 0x63:
-        data = ListIdentity.parse(dataBuff);
+        data = ENIDATA.ListIdentity.parse(dataBuff);
         break;
       case 0x65:
-        data = RegisterSession.parse(dataBuff);
+        data = ENIDATA.RegisterSession.parse(dataBuff);
         break;
       case 0x6f:
-        data = SendRRData.parse(dataBuff);
+        data = ENIDATA.SendRR.parse(dataBuff);
         break;
       default:
         // eslint-disable-next-line max-len

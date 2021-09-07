@@ -1,5 +1,4 @@
-import {Identity,
-  IdentityJSONObject} from 'cip/identity';
+import Identity, {IdentityJSON} from 'cip/identity';
 import {BufferIterator} from 'utils';
 import {Item} from './item';
 import {ItemType} from './item_type';
@@ -7,7 +6,7 @@ import {SocketAddrItem,
   SocketAddrItemDataJSONObject} from './socketaddr_item';
 
 export interface ListIdentityItemJSONObjet extends Object {
-  identity:IdentityJSONObject;
+  identity:IdentityJSON;
   socketAddress : SocketAddrItemDataJSONObject;
   protocol:number;
 }

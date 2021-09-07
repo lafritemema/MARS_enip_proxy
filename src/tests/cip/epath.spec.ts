@@ -1,9 +1,4 @@
-import {EPath, Logical} from 'cip/epath';
-
-/* import {LogicalSegment} from 'cip/segment';
-import {LogicalFormat} from '../../lib/cip/segment/logical/logical_format';
-import {LogicalType} from '../../lib/cip/segment/logical/logical_type';
-*/
+import EPath, {segment} from 'cip/epath';
 
 describe('Test path interface', ()=> {
   const expectedSize2 = 2;
@@ -67,31 +62,38 @@ describe('Test path interface', ()=> {
   test('Build buffer from path with 2 segments', ()=> {
     const bufferPath2 = Buffer.from(listPath2);
     const path = new EPath();
-    // @ts-ignore
-    path.addSegment(new Logical.Segment(Logical.Type.CLASS_ID,
-        Logical.Format.BIT_8,
+
+    path.addSegment(new segment.Logical(
+        segment.logical.Type.CLASS_ID,
+        segment.logical.Format.BIT_8,
         0x6c));
-    // @ts-ignore
-    path.addSegment(new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
-        Logical.Format.BIT_16,
+
+    path.addSegment(new segment.Logical(
+        segment.logical.Type.ATTRIBUTE_ID,
+        segment.logical.Format.BIT_16,
         37158));
+
     const pathBuffer = path.encode();
     expect(pathBuffer).toStrictEqual(bufferPath2);
   });
   test('Build buffer from path with 3 segments', ()=> {
     const bufferPath3 = Buffer.from(listPath3);
     const path = new EPath();
-    // @ts-ignore
-    path.addSegment(new Logical.Segment(Logical.Type.CLASS_ID,
-        Logical.Format.BIT_8,
+
+    path.addSegment(new segment.Logical(
+        segment.logical.Type.CLASS_ID,
+        segment.logical.Format.BIT_8,
         0x6c));
+
     // @ts-ignore
-    path.addSegment(new Logical.Segment(Logical.Type.INSTANCE_ID,
-        Logical.Format.BIT_8,
+    path.addSegment(new segment.Logical(
+        segment.logical.Type.INSTANCE_ID,
+        segment.logical.Format.BIT_8,
         1));
     // @ts-ignore
-    path.addSegment(new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
-        Logical.Format.BIT_8,
+    path.addSegment(new segment.Logical(
+        segment.logical.Type.ATTRIBUTE_ID,
+        segment.logical.Format.BIT_8,
         4));
 
     const pathBuffer = path.encode();

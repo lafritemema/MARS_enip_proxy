@@ -1,9 +1,8 @@
 import {ItemType} from './item_type';
-import {Message as CIPMessage} from '../../../../cip/message/message';
-// import {BufferIterator} from '../../../../utils/buffer_iterator';
+import {CIPMessage} from 'cip';
 import {Item} from './item';
 
-interface dataItemJSONObject extends Object {
+export interface dataItemJSONObject extends Object {
   itemType:string,
   length:number,
   data:object|null

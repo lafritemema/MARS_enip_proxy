@@ -1,6 +1,6 @@
-import {BufferIterator} from '../../utils/buffer_iterator';
-import {DeviceProfile} from './device_profile';
-import {DeviceState} from './device_state';
+import {BufferIterator} from 'utils';
+import {DeviceProfile} from './device/device_profile';
+import {DeviceState} from './device/device_state';
 
 // ENHANCE : improve access to vendor name
 // eslint-disable-next-line max-len

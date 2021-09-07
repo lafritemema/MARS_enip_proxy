@@ -1,16 +1,13 @@
 import {Segment} from './segment';
+import Logical, * as logical from './logical';
 // import {SegmentType, SegmentTypeObject, SegmentTypeKeys} from './segment_type';
-import {LogicalSegment, LogicalType, LogicalFormat} from './logical';
+
 import {SegmentIterator, SegmentIteration} from './segment_iterator';
 
-const Logical = {
-  Segment: LogicalSegment,
-  Format: LogicalFormat,
-  Type: LogicalType,
-};
-
-export {Segment,
-  SegmentIterator,
-  SegmentIteration,
+export default Segment;
+export {
   Logical,
+  logical,
+  SegmentIterator as Iterator,
+  SegmentIteration as Iteration,
 };

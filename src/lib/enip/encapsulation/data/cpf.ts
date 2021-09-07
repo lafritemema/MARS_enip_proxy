@@ -1,15 +1,9 @@
-
-
-import {AddressItem} from './item/address_item';
-import {DataItem} from './item/data_item';
-import {Item} from './item/item';
-import {ItemIterator,
-  ItemIteration} from './item/item_iterator';
+import Item, * as item from './item';
 
 export interface CPFJSONObject extends Object{
-  addressItem:object,
-  dataItem:object,
-  optionalItems:Object[],
+  addressItem:item.AddressJSON,
+  dataItem:item.DataJSON,
+  optionalItems:object[],
 }
 
 /**
@@ -17,8 +11,8 @@ export interface CPFJSONObject extends Object{
  * @class
  */
 export class EnipCPF {
-  private _addressItem:AddressItem;
-  private _dataItem:DataItem;
+  private _addressItem:item.Address;
+  private _dataItem:item.Data;
   private _optionalItems:Item[];
 
   /**
@@ -27,8 +21,8 @@ export class EnipCPF {
    * @param {DataItem} dataItem DataItem instance containing encapsulated data
    * @param {Item} optionalItems list of other CPF items, default empty array
    */
-  public constructor(addressItem:AddressItem,
-      dataItem:DataItem,
+  public constructor(addressItem:item.Address,
+      dataItem:item.Data,
       optionalItems:Item[]=[]) {
     this._addressItem= addressItem;
     this._dataItem= dataItem;
@@ -69,22 +63,22 @@ export class EnipCPF {
     const itemCount = cpfBuffer.readUInt16LE(0);
     checkItemCount(itemCount);
 
-    const itemIt = new ItemIterator(cpfBuffer.slice(2));
+    const itemIt = new item.Iterator(cpfBuffer.slice(2));
 
-    let iteration:ItemIteration= itemIt.next();
-    let dataItem:DataItem;
-    let addressItem:AddressItem;
+    let iteration:item.Iteration= itemIt.next();
+    let dataItem:item.Data;
+    let addressItem:item.Address;
 
-    if (!iteration.done && iteration.value instanceof AddressItem) {
-      addressItem = <AddressItem>iteration.value;
+    if (!iteration.done && iteration.value instanceof item.Address) {
+      addressItem = <item.Address>iteration.value;
     } else {
       // eslint-disable-next-line max-len
       throw new Error(`ERROR : The CPF packet first item must be an AddressItem instance instead of ${typeof iteration}.`);
     }
 
     iteration = itemIt.next();
-    if (!iteration.done && iteration.value instanceof DataItem) {
-      dataItem = <DataItem>iteration.value;
+    if (!iteration.done && iteration.value instanceof item.Data) {
+      dataItem = <item.Data>iteration.value;
     } else {
       // eslint-disable-next-line max-len
       throw new Error(`ERROR : The CPF packet second item must be an DataItem instance instead of ${typeof iteration}.`);
@@ -93,15 +87,15 @@ export class EnipCPF {
     const otherItem = [];
 
     if (itemCount>2) {
-      let item = itemIt.next();
-      while (!item.done) {
-        otherItem.push(item.value);
-        item = itemIt.next();
+      let itemIteration:item.Iteration = itemIt.next();
+      while (!itemIteration.done) {
+        otherItem.push(itemIteration.value);
+        itemIteration = itemIt.next();
       }
     }
 
-    return new EnipCPF(<AddressItem>addressItem,
-      <DataItem>dataItem,
+    return new EnipCPF(<item.Address>addressItem,
+      <item.Data>dataItem,
       <Item[]>otherItem);
   }
 

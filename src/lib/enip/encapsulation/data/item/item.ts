@@ -1,4 +1,3 @@
-// import {ItemType} from './item_type';
 /**
  * Class describing an encapsulation item
  */

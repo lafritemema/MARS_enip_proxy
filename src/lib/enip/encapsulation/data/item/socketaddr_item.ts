@@ -1,5 +1,7 @@
 import {ItemType} from './item_type';
-import {convertIp2Num, convertNum2Ip, BufferIterator} from 'utils';
+import {convertIp2Num,
+  convertNum2Ip,
+  BufferIterator} from 'utils';
 import {Item} from './item';
 
 export interface SocketAddrItemDataJSONObject extends Object {

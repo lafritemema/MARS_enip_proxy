@@ -1,14 +1,11 @@
-import {DeviceProfile} from './device_profile';
-import {Identity, IdentityJSONObject} from './identity';
-import {DeviceState} from './device_state';
 
-const Device = {
-  Profile: DeviceProfile,
-  State: DeviceState,
-};
+import * as device from './device';
+import {Identity,
+  IdentityJSONObject} from './identity';
+
+export default Identity;
 
 export {
-  Device,
-  Identity,
-  IdentityJSONObject,
+  device,
+  IdentityJSONObject as IdentityJSON,
 };

@@ -1,9 +1,9 @@
-import {EPath as EPath} from './epath';
-import {Logical} from './segment';
+import {EPath} from './epath';
+import Segment, * as segment from './segment';
 
+export default EPath;
 export {
-  EPath,
-  Logical,
+  Segment,
+  segment,
 };
-
 

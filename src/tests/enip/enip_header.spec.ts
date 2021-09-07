@@ -1,5 +1,5 @@
 
-import {ENIPHeader} from 'enip/encapsulation';
+import * as enip from 'enip';
 
 describe('ENIP header encoding and parsing', ()=> {
   // eslint-disable-next-line max-len
@@ -38,31 +38,31 @@ describe('ENIP header encoding and parsing', ()=> {
 
   test('parse listIdentity request header', ()=> {
     const liReqBuffer = Buffer.from(listIdentityReqHexStr, 'hex');
-    const header = ENIPHeader.Header.parse(liReqBuffer);
+    const header = enip.Header.parse(liReqBuffer);
     expect(header.toJSON()).toStrictEqual(listIdentityReqObject);
   });
   test('parse register session request header', ()=> {
     const sessionReqBuffer = Buffer.from(registerSessionReqHexStr, 'hex');
-    const header = ENIPHeader.Header.parse(sessionReqBuffer);
+    const header = enip.Header.parse(sessionReqBuffer);
     expect(header.toJSON()).toStrictEqual(registerSessionReqObject);
   });
   test('parse get attribute single request header', ()=> {
     const srrdReqBuffer = Buffer.from(sendRRdataReqHexStr, 'hex');
-    const header = ENIPHeader.Header.parse(srrdReqBuffer);
+    const header = enip.Header.parse(srrdReqBuffer);
     expect(header.toJSON()).toStrictEqual(sendRRdataReqObject);
   });
   test('encode listIdentity request header', ()=> {
-    const header = ENIPHeader.buildListIdentity();
+    const header = enip.header.buildListIdentity();
     expect(header.toJSON()).toStrictEqual(listIdentityReqObject);
     expect(header.encode().toString('hex')).toBe(listIdentityReqHexStr);
   });
   test('encode register session request header', ()=> {
-    const header = ENIPHeader.buildRegSession();
+    const header = enip.header.buildRegSession();
     expect(header.toJSON()).toStrictEqual(registerSessionReqObject);
     expect(header.encode().toString('hex')).toBe(registerSessionReqHexStr);
   });
   test('encode sendRRdata request header', ()=> {
-    const header = ENIPHeader.buildSendRR(0x3bb53df0, 24);
+    const header = enip.header.buildSendRR(0x3bb53df0, 24);
     expect(header.toJSON()).toStrictEqual(sendRRdataReqObject);
     expect(header.encode().toString('hex')).toBe(sendRRdataReqHexStr);
   });

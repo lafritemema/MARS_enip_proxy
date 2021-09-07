@@ -1,7 +1,7 @@
-import {EPath, Logical} from 'cip/epath';
-import {CIPMessage} from 'cip/message';
+import EPath, {segment} from 'cip/epath';
+import CIPMessage, * as message from 'cip/message';
 
-describe('CIP message parsing and encoding', ()=> {
+describe('CIP mess parsing and encoding', ()=> {
   const requestHexString = '0e03206b24013005'; // get attribute single request
   const responseHexString = '8e00000034000000'; // get attribute single response
 
@@ -37,33 +37,36 @@ describe('CIP message parsing and encoding', ()=> {
 
   test('Parse a get attribute single request buffer', ()=> {
     const requestBuffer = Buffer.from(requestHexString, 'hex');
-    const message = CIPMessage.Message.parse(requestBuffer);
+    const mess = CIPMessage.parse(requestBuffer);
 
-    expect(message.toJSON()).toStrictEqual(reqMsgObj);
+    expect(mess.toJSON()).toStrictEqual(reqMsgObj);
   });
   test('Parse a get attribute single reponse buffer', ()=> {
     const responseBuffer = Buffer.from(responseHexString, 'hex');
-    const message = CIPMessage.Message.parse(responseBuffer);
+    const mess = CIPMessage.parse(responseBuffer);
 
-    expect(message.toJSON()).toStrictEqual(respMsgObj);
+    expect(mess.toJSON()).toStrictEqual(respMsgObj);
   });
 
   test('Encode a get attribute single request buffer', ()=> {
-    const classSeg = new Logical.Segment(Logical.Type.CLASS_ID,
-        Logical.Format.BIT_8,
+    const classSeg = new segment.Logical(
+        segment.logical.Type.CLASS_ID,
+        segment.logical.Format.BIT_8,
         0x6b);
 
-    const instanceSeg = new Logical.Segment(Logical.Type.INSTANCE_ID,
-        Logical.Format.BIT_8,
+    const instanceSeg = new segment.Logical(
+        segment.logical.Type.INSTANCE_ID,
+        segment.logical.Format.BIT_8,
         1);
 
-    const attributeSeg = new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
-        Logical.Format.BIT_8,
+    const attributeSeg = new segment.Logical(
+        segment.logical.Type.ATTRIBUTE_ID,
+        segment.logical.Format.BIT_8,
         5);
 
     const epath = new EPath([classSeg, instanceSeg, attributeSeg]);
-    const reqMessage = new CIPMessage.Request(
-        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
+    const reqMessage = new message.Request(
+        message.Service.GET_ATTRIBUTE_SINGLE,
         epath);
 
     const rBuffer = reqMessage.encode();
@@ -72,9 +75,9 @@ describe('CIP message parsing and encoding', ()=> {
   test('Encode a get attribute single response buffer', () => {
     const dataHexStr = '34000000';
     const dataBuffer = Buffer.from(dataHexStr, 'hex');
-    const respMessage = new CIPMessage.Response(
-        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
-        CIPMessage.Status.Success,
+    const respMessage = new message.Response(
+        message.Service.GET_ATTRIBUTE_SINGLE,
+        message.Status.Success,
         dataBuffer);
     const respBuffer = respMessage.encode();
     expect(respBuffer.toString('hex')).toBe(responseHexString);

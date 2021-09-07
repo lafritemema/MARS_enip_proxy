@@ -1,7 +1,6 @@
-
 // eslint-disable-next-line max-len
-import {ENIPData} from 'enip/encapsulation';
-import {Identity, Device} from 'cip/identity';
+import * as enip from 'enip';
+import Identity, {device} from 'cip/identity';
 
 describe('Parse/Encode an list identity encapsulated data response', ()=> {
   // eslint-disable-next-line max-len
@@ -40,30 +39,30 @@ describe('Parse/Encode an list identity encapsulated data response', ()=> {
 
   test('Parse ListIdentity buffer', ()=> {
     const liBuff = Buffer.from(listIdentityItemHexStr, 'hex');
-    const listIdentity = ENIPData.ListIdentity.parse(liBuff);
+    const listIdentity = enip.data.ListIdentity.parse(liBuff);
     expect(listIdentity.toJSON()).toStrictEqual(lisIdentityObj);
   });
   test('Encode ListIdentity object', ()=> {
-    const socketAddress = new ENIPData.Item.SocketAddr('192.168.1.73');
+    const socketAddress = new enip.data.item.SocketAddr('192.168.1.73');
     const cipIdentity = new Identity(356,
-        Device.Profile.CommunicationsAdapter,
+        device.Profile.CommunicationsAdapter,
         4,
         3,
         1,
         0x0034,
         0xf420d721,
         'FANUC Robot R30iB+',
-        Device.State.DefaultGetAttributesAll);
+        device.State.DefaultGetAttributesAll);
 
     // BUG: by default the sinFamily is 0x0002 (2 write on 2 byte in BE byte order)
     // but the fanuc controler send 0x0200 (512 write on 2 bytes in BE)
     socketAddress.sinFamilly = 512;
 
-    const identityItem = new ENIPData.Item.ListIdentity(
+    const identityItem = new enip.data.item.ListIdentity(
         cipIdentity,
         socketAddress);
 
-    const listIdentity = new ENIPData.ListIdentity(identityItem);
+    const listIdentity = new enip.data.ListIdentity(identityItem);
     const listIdentityBuff = listIdentity.encode();
 
     expect(listIdentityBuff.toString('hex')).toBe(listIdentityItemHexStr);

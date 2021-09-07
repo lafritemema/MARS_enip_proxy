@@ -1,10 +1,7 @@
 // import {SegmentFactory} from './segments/segment_factory';
 // import {Segment} from './segments/segment';
 
-import {Segment,
-  SegmentIterator,
-  SegmentIteration} from './segment';
-
+import Segment, * as SEGMENT from './segment';
 
 /**
  * @class EPath
@@ -31,8 +28,8 @@ export class EPath {
 
     const segments : Segment[] = [];
 
-    const segIterator = new SegmentIterator(pathBuffer);
-    let segIt:SegmentIteration = segIterator.next();
+    const segIterator = new SEGMENT.Iterator(pathBuffer);
+    let segIt:SEGMENT.Iteration = segIterator.next();
 
     while (!segIt.done) {
       const segment = <Segment>segIt.value; // add segment type to avoid ts error

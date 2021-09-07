@@ -1,4 +1,4 @@
-import {Identity, Device} from 'cip/identity';
+import Identity, {device} from 'cip/identity';
 
 describe('CIP identity object parsing and encoding', ()=> {
   // eslint-disable-next-line max-len
@@ -24,14 +24,14 @@ describe('CIP identity object parsing and encoding', ()=> {
 
   test('CIP Indentity object encoding', ()=> {
     const idObject = new Identity(356,
-        Device.Profile.CommunicationsAdapter,
+        device.Profile.CommunicationsAdapter,
         4,
         3,
         1,
         0x0034,
         0xf420d721,
         'FANUC Robot R30iB+',
-        Device.State.DefaultGetAttributesAll);
+        device.State.DefaultGetAttributesAll);
     const idObjectBuff = idObject.encode();
     expect(idObjectBuff.toString('hex')).toBe(identityHexString);
   });

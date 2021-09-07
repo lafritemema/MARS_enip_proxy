@@ -1,8 +1,8 @@
 import {Item} from './item';
 import {ItemType} from './item_type';
-import {BufferIterator} from '../../../../utils/buffer_iterator';
+import {BufferIterator} from 'utils';
 
-interface AddressItemJSONObject extends Object {
+export interface AddressItemJSONObject extends Object {
   itemType:string,
   length: number,
   connectionId?:number,

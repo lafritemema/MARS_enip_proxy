@@ -2,10 +2,10 @@
     "extends": "@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
       "preserveConstEnums": true,
-      "module": "es6",
+      "module": "commonjs",
+      "target": "es6",
       "moduleResolution":"node",
       "esModuleInterop": true,
-      "target": "es6",
       "jsx": "preserve",
       "strictFunctionTypes": true,
       "sourceMap": true,
@@ -15,12 +15,10 @@
       "baseUrl": ".",
       "paths": {
         "utils": ["src/lib/utils"],
-        // "cip": ["src/lib/cip"],
         "cip/*": ["src/lib/cip/*"],
-        "enip": ["src/lib/enip"],
-        "enip/*": ["src/lib/enip/*"]// This mapping is relative to "baseUrl"
+        "enip/*": ["src/lib/enip/*"] // This mapping is relative to "baseUrl"
       }
     },
     "include": ["src/lib/**/*", "src/tests/**/*"],
-    "exclude": ["node_modules"],
+    "exclude": ["node_modules", "src/lib/enip_wrapper.ts", "src/lib/main.ts", "src/lib/tcp_client.ts", "src/lib/udp_client.ts"],
 }

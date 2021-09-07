@@ -1,4 +1,4 @@
-import {Logical} from 'cip/epath/segment';
+import {Logical, logical} from 'cip/epath/segment';
 
 describe('Test segment interface', ()=> {
   const obj16 = {
@@ -25,7 +25,7 @@ describe('Test segment interface', ()=> {
 
   test('Parse logical 16 bit buffer', ()=>{
     const metaBuffer = buff16.slice(0, 1);
-    const segment = Logical.Segment.parseMeta(metaBuffer);
+    const segment = Logical.parseMeta(metaBuffer);
     const dataBuffer = buff16.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
 
@@ -33,7 +33,7 @@ describe('Test segment interface', ()=> {
   });
   test('Parse logical 32 bit buffer', ()=>{
     const metaBuffer = buff32.slice(0, 1);
-    const segment = Logical.Segment.parseMeta(metaBuffer);
+    const segment = Logical.parseMeta(metaBuffer);
     const dataBuffer = buff32.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
 
@@ -41,7 +41,7 @@ describe('Test segment interface', ()=> {
   });
   test('Parse logical 40 bit buffer', ()=> {
     const metaBuffer = buff40.slice(0, 1);
-    const segment = Logical.Segment.parseMeta(metaBuffer);
+    const segment = Logical.parseMeta(metaBuffer);
 
     const dataBuffer = buff40.slice(1, segment.dataLength + 1);
     segment.parseData(dataBuffer);
@@ -49,25 +49,24 @@ describe('Test segment interface', ()=> {
     expect(segment.toJSON()).toStrictEqual(obj40);
   });
   test('Encode a logical segment with 8 bit value size', ()=>{
-    // @ts-ignore
-    const segment = new Logical.Segment(Logical.Type.CLASS_ID,
-        Logical.Format.BIT_8,
+    const segment = new Logical(logical.Type.CLASS_ID,
+        logical.Format.BIT_8,
         0x6c);
     const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff16);
   });
   test('Encode a logical segment with 16 bit value size', ()=>{
     // @ts-ignore
-    const segment = new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
-        Logical.Format.BIT_16,
+    const segment = new Logical(logical.Type.ATTRIBUTE_ID,
+        logical.Format.BIT_16,
         37158);
     const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff32);
   });
   test('Encode a logical segment with 32 bit value size', ()=>{
     // @ts-ignore
-    const segment = new Logical.Segment(Logical.Type.CONNECTION_POINT,
-        Logical.Format.BIT_32,
+    const segment = new Logical(logical.Type.CONNECTION_POINT,
+        logical.Format.BIT_32,
         639996198);
     const buffer = segment.encode();
     expect(buffer).toStrictEqual(buff40);

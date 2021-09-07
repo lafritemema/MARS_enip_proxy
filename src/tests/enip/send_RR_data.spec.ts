@@ -1,7 +1,5 @@
-import {SendRRData} from '../../lib/enip/encapsulation/data/send_RR_data';
-import {EPath, Logical} from 'cip/epath';
-import {CIPMessage} from 'cip/message';
-import {ENIPData} from 'enip/encapsulation';
+import * as enip from 'enip';
+import * as cip from 'cip';
 
 describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
   const sendRRHexStrReq = '000000000000020000000000b20008000e03206b24013005';
@@ -76,37 +74,40 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
 
   test('Parse a SendRR encapsulated data => Request', ()=> {
     const srrBuff = Buffer.from(sendRRHexStrReq, 'hex');
-    const srrData = SendRRData.parse(srrBuff);
+    const srrData = enip.data.SendRR.parse(srrBuff);
     expect(srrData.toJSON()).toStrictEqual(sendRRReqObj);
   });
   test('Parse a SendRR encapsulated data => Response', ()=> {
     const srrBuff = Buffer.from(sendRRHexStrRes, 'hex');
-    const srrData = SendRRData.parse(srrBuff);
+    const srrData = enip.data.SendRR.parse(srrBuff);
     expect(srrData.toJSON()).toStrictEqual(sendRRResObj);
   });
   test('Encode a SendRR encapsulated data object => Request', ()=> {
-    const classSeg = new Logical.Segment(Logical.Type.CLASS_ID,
-        Logical.Format.BIT_8,
+    const classSeg = new cip.epath.segment.Logical(
+        cip.epath.segment.logical.Type.CLASS_ID,
+        cip.epath.segment.logical.Format.BIT_8,
         0x6b);
 
-    const instanceSeg = new Logical.Segment(Logical.Type.INSTANCE_ID,
-        Logical.Format.BIT_8,
+    const instanceSeg = new cip.epath.segment.Logical(
+        cip.epath.segment.logical.Type.INSTANCE_ID,
+        cip.epath.segment.logical.Format.BIT_8,
         1);
 
-    const attributeSeg = new Logical.Segment(Logical.Type.ATTRIBUTE_ID,
-        Logical.Format.BIT_8,
+    const attributeSeg = new cip.epath.segment.Logical(
+        cip.epath.segment.logical.Type.ATTRIBUTE_ID,
+        cip.epath.segment.logical.Format.BIT_8,
         5);
 
-    const epath = new EPath([classSeg, instanceSeg, attributeSeg]);
-    const reqMessage = new CIPMessage.Request(
-        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
+    const epath = new cip.EPath([classSeg, instanceSeg, attributeSeg]);
+    const reqMessage = new cip.message.Request(
+        cip.message.Service.GET_ATTRIBUTE_SINGLE,
         epath);
 
-    const addressItem = ENIPData.Item.buildNullAddressItem();
-    const dataItem = ENIPData.Item.buildUnconnectedDataItem(reqMessage);
-    const cpf = new ENIPData.CPF(addressItem, dataItem);
+    const addressItem = enip.data.item.buildNullAddressItem();
+    const dataItem = enip.data.item.buildUnconnectedDataItem(reqMessage);
+    const cpf = new enip.data.CPF(addressItem, dataItem);
 
-    const srrData = new ENIPData.SendRR(cpf);
+    const srrData = new enip.data.SendRR(cpf);
     const srrDataBuff = srrData.encode();
 
     expect(srrDataBuff.toString('hex')).toBe(sendRRHexStrReq);
@@ -114,16 +115,16 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
   test('Encode a SendRR encapsulated data object => Response', ()=> {
     const dataHexStr = '34000000';
     const dataBuffer = Buffer.from(dataHexStr, 'hex');
-    const respMessage = new CIPMessage.Response(
-        CIPMessage.Service.GET_ATTRIBUTE_SINGLE,
-        CIPMessage.Status.Success,
+    const respMessage = new cip.message.Response(
+        cip.message.Service.GET_ATTRIBUTE_SINGLE,
+        cip.message.Status.Success,
         dataBuffer);
 
-    const addressItem = ENIPData.Item.buildNullAddressItem();
-    const dataItem = ENIPData.Item.buildUnconnectedDataItem(respMessage);
+    const addressItem = enip.data.item.buildNullAddressItem();
+    const dataItem = enip.data.item.buildUnconnectedDataItem(respMessage);
 
-    const cpf = new ENIPData.CPF(addressItem, dataItem);
-    const srrData = new ENIPData.SendRR(cpf);
+    const cpf = new enip.data.CPF(addressItem, dataItem);
+    const srrData = new enip.data.SendRR(cpf);
     const srrBuff = srrData.encode();
 
     expect(srrBuff.toString('hex')).toBe(sendRRHexStrRes);
