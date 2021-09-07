@@ -8,7 +8,7 @@
       "esModuleInterop": true,
       "jsx": "preserve",
       "strictFunctionTypes": true,
-      "sourceMap": true,
+      "sourceMap": false,
       "outDir": "bin",
       "resolveJsonModule": true,
       "noStrictGenericChecks" : true,
@@ -16,9 +16,13 @@
       "paths": {
         "utils": ["src/lib/utils"],
         "cip/*": ["src/lib/cip/*"],
-        "enip/*": ["src/lib/enip/*"] // This mapping is relative to "baseUrl"
-      }
+        "enip/*": ["src/lib/enip/*"],
+        "cip": ["src/lib/cip"],
+        "enip": ["src/lib/enip"]// This mapping is relative to "baseUrl"
+      },
     },
     "include": ["src/lib/**/*", "src/tests/**/*"],
-    "exclude": ["node_modules", "src/lib/enip_wrapper.ts", "src/lib/main.ts", "src/lib/tcp_client.ts", "src/lib/udp_client.ts"],
+    "exclude": ["node_modules", "src/lib/enip_wrapper.ts",
+      "src/lib/main.ts", "src/lib/tcp_client.ts",
+      "src/lib/udp_client.ts"],
 }

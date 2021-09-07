@@ -185,6 +185,8 @@ export default {
     '^utils': '<rootDir>/src/lib/utils',
     '^cip/(.*)': '<rootDir>/src/lib/cip/$1',
     '^enip/(.*)': '<rootDir>/src/lib/enip/$1',
+    '^cip': '<rootDir>/src/lib/cip',
+    '^enip': '<rootDir>/src/lib/enip',
   },
   testMatch: [
     // "**/__tests__/**/*.[jt]s?(x)",
