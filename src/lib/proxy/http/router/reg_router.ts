@@ -4,6 +4,10 @@ const regRouter:express.Router = express.Router();
 
 regRouter
     .route('/single')
+    .all(function(request, response, next) {
+      console.log(request.body.data)
+      next();
+    })
     .get(
         query('reg')
             .exists({checkFalsy: true})
@@ -39,13 +43,14 @@ regRouter
             .isNumeric()
             .withMessage('ERROR: <data> value must be numeric')
             .custom((value, {req})=>{
-              if (value % 1 != 0 && <Record<string,any>>(req.query)type == 'int')
+              if (value % 1 != 0 && req.query && req.query.type == 'int')
               {
-                throw new Error(`ERROR: Incompatibility between request <type:${request.query.type}> and <data> value.`)
+                throw new Error(`ERROR: Incompatibility between request <type:${req.query.type}> and <data:${value}>.`)
               }
-            })
+              return true;
+            }),
         extractMetadata,
-        extractData,
+        //extractData,
     );
 
 regRouter
