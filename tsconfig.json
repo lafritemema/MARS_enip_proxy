@@ -1,5 +1,5 @@
 {
-    "extends": "@tsconfig/node14/tsconfig.json",
+    "extends": "./node_modules/@tsconfig/node14/tsconfig.json",
     "compilerOptions": {
       "preserveConstEnums": true,
       "module": "commonjs",
@@ -12,15 +12,15 @@
       "outDir": "bin",
       "resolveJsonModule": true,
       "noStrictGenericChecks" : true,
-      "baseUrl": "./src",
+      "baseUrl": ".",
       "paths": {
-        "cip":["lib/cip", "lib/cip/*"],
-        "enip":["lib/enip","lib/enip/*"],
-        "utils": ["lib/utils"]
+        "cip":["src/lib/cip", "src/lib/cip/*"],
+        "enip":["src/lib/enip", "src/lib/enip/*"],
+        "utils": ["src/lib/utils"]
         }
     },
-    "include": ["src/lib/**/*","src/tests/**/*"],
-    "exclude": ["node_modules",
+    "include": ["src/lib/**/*"],
+    "exclude": ["src/tests/**/*", "node_modules",
       "src/lib/proxy/enip/enip_wrapper.ts",
       "src/lib/main.ts",
       "src/lib/tcp_client.ts",
