@@ -1,6 +1,7 @@
-import {BufferIterator} from '../../../utils/buffer_iterator';
+
+import {BufferIterator} from 'utils';
 import {EnipCommand} from './enip_command';
-import {EnipStatus} from './enip_status';
+import {EnipStatus, ENIPStatusMsg, EnipStatusObject} from './enip_status';
 
 export interface EnipHeaderJSONObject extends Object{
   command:string,
@@ -63,11 +64,44 @@ encapsulation command. length of 8 bytes
   }
 
   /**
-   * Get EnipHeader command code in bytes
-   * @return {number} EnipHeader length
+   * Get EnipHeader command code
+   * @return {number} command code
    */
   public get command():number {
     return this._command;
+  }
+
+  /**
+   * Get EnipHeader status code
+   * @return {number} status code
+   */
+  public get status():number {
+    return this._status;
+  }
+
+  /**
+   * Get EnipHeader session number
+   * @return {number} session number
+   */
+  public get session():number {
+    return this._session;
+  }
+
+  /**
+   * Get a status object describing request status
+   * @return {EnipStatusObject} status object
+   */
+  public getStatus():EnipStatusObject {
+    const strStatus = EnipStatus[this._status];
+    return ENIPStatusMsg[strStatus];
+  }
+
+  /**
+   * Get EnipHeader command in string
+   * @return {string} command in string format
+   */
+  public getCommand():string {
+    return EnipCommand[this._command];
   }
 
   /**

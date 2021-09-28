@@ -16,10 +16,7 @@ export abstract class Segment {
     }
     public abstract get length():number;
     public abstract get dataLength():number;
-    public abstract parseData(dataBuffer:Buffer):void;
     public abstract encode():Buffer;
     public abstract toJSON():object;
-    // @ts-ignore
-    public static parseMeta(metaBuffer:Buffer):Segment;
 }
 

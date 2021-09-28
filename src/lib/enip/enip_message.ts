@@ -1,5 +1,9 @@
 import {BufferIterator} from 'utils';
-import EnipData, * as ENIDATA from './encapsulation/data';
+import EnipData, {ListIdentity,
+  ListIdentityBody,
+  RegisterSession,
+  SendRR,
+  SendRRBody} from './encapsulation/data';
 import EnipHeader,
 {EnipHeaderJSON} from './encapsulation/header';
 
@@ -27,6 +31,40 @@ export class EnipMessage {
   }
 
   /**
+   * Get communication session
+   */
+  public get session() {
+    return this._header.session;
+  }
+
+  /**
+   * Get the status of request
+   */
+  public get status() {
+    return this._header.getStatus();
+  }
+
+
+  /**
+   * Get the command of request
+   */
+  public get command() {
+    return this._header.getCommand();
+  }
+
+  /**
+   * Get the data message body
+   * @return {ListIdentityBody|SendRRBody|undefined} message body
+   */
+  public get body():ListIdentityBody|SendRRBody|undefined {
+    if (this._data instanceof ListIdentity) {
+      return (<ListIdentity> this._data).body;
+    } else if (this._data instanceof SendRR) {
+      return (<SendRR> this._data).body;
+    }
+  }
+
+  /**
    * Parse a buffer describing the Enip message
    * @param {Buffer} enipBuffer buffer describing the Enip packet
    * @return {Enip} a Enip instance
@@ -37,27 +75,30 @@ export class EnipMessage {
     const headerBuff = buffIt.next(24).value;
     const header = EnipHeader.parse(headerBuff);
 
-    const dataBuff = buffIt.next(header.dataLengt).value;
+    // if request status = success in header
+    if (header.getStatus().state) {
+      let data:EnipData;
 
-    let data:EnipData;
-
-    // ENHANCE : improve EnipData object selection
-    switch (header.command) {
-      case 0x63:
-        data = ENIDATA.ListIdentity.parse(dataBuff);
-        break;
-      case 0x65:
-        data = ENIDATA.RegisterSession.parse(dataBuff);
-        break;
-      case 0x6f:
-        data = ENIDATA.SendRR.parse(dataBuff);
-        break;
-      default:
+      const dataBuff = buffIt.next(header.dataLengt).value;
+      // ENHANCE : improve EnipData object selection
+      switch (header.command) {
+        case 0x63:
+          data = ListIdentity.parse(dataBuff);
+          break;
+        case 0x65:
+          data = RegisterSession.parse(dataBuff);
+          break;
+        case 0x6f:
+          data = SendRR.parse(dataBuff);
+          break;
+        default:
         // eslint-disable-next-line max-len
-        throw new Error(`The enip command <${header.command} is not valid or not implemented.`);
+          throw new Error(`The enip command <${header.command} is not valid or not implemented.`);
+      }
+      return new EnipMessage(header, data);
+    } else {
+      return new EnipMessage(header);
     }
-
-    return new EnipMessage(header, data);
   }
 
   /**
@@ -85,3 +126,4 @@ export class EnipMessage {
     };
   }
 }
+

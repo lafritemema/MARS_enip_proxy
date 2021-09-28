@@ -1,6 +1,6 @@
 import {ItemType} from './item_type';
 import {CIPMessage} from 'cip';
-import {Item} from './item';
+import {Item, ItemInterface} from './item';
 
 export interface dataItemJSONObject extends Object {
   itemType:string,
@@ -11,20 +11,28 @@ export interface dataItemJSONObject extends Object {
 /**
  * Class describing an Common Packet Format data item
  */
-export class DataItem extends Item {
-  private _data:CIPMessage|undefined;
+export class DataItem extends Item implements ItemInterface {
+  private _message:CIPMessage|undefined;
 
   /**
    * DataItem instance constructor
    * @param {number} dataTypeCode CPF item type code default (DATA_UNCONNECTED_MESSAGE)
    * @param {number} dataLength CIP Message length in byte, default 0
-   * @param {Message} data a CIP Message instance describing the data
+   * @param {Message} message a CIP Message instance describing the data
    */
-  public constructor(dataTypeCode:number=ItemType.DATA_UNCONNECTED_MESSAGE,
+  public constructor(dataTypeCode:number=ItemType.UNCONNECTED_MESSAGE,
       dataLength:number=0,
-      data?:CIPMessage) {
+      message?:CIPMessage) {
     super(dataTypeCode, dataLength);
-    this._data = data;
+    this._message = message;
+  }
+
+
+  /**
+   * get item message data
+   */
+  public get message():CIPMessage|undefined {
+    return this._message;
   }
 
   /**
@@ -35,7 +43,7 @@ export class DataItem extends Item {
     return {
       itemType: ItemType[this._type],
       length: this.length,
-      data: this._data ? this._data.toJSON() : null,
+      data: this._message ? this._message.toJSON() : null,
     };
   }
 
@@ -45,12 +53,12 @@ export class DataItem extends Item {
    */
   public encode():Buffer {
     // dataBuffer = encoded CIP message
-    if (this._data==undefined) {
+    if (this._message==undefined) {
       // eslint-disable-next-line max-len
       throw new Error('ERROR: The CPF data item is not conform. Encoding is impossible.');
     }
 
-    const dataBuffer = this._data.encode();
+    const dataBuffer = this._message.encode();
     // metabuffer size 4 bytes => <item type (2 bytes), data length (2 bytes)>
     const metaBuffer = Buffer.alloc(4);
     metaBuffer.writeUInt16LE(this._type, 0);
@@ -66,14 +74,14 @@ export class DataItem extends Item {
   public parseData(dataBuffer:Buffer):void {
     this._dataLength = dataBuffer.length;
     const cipMessage = CIPMessage.parse(dataBuffer);
-    this._data = cipMessage;
+    this._message = cipMessage;
   }
 
   /**
-   * Get the group of item type
-   * @return {string} item group
+   * Get the item type under string format
+   * @return {string} item type
    */
-  public get group() : string {
-    return 'DATA';
+  public getType():string {
+    return ItemType[this._type];
   }
 }

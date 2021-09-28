@@ -2,7 +2,7 @@ import {ItemType} from './item_type';
 import {convertIp2Num,
   convertNum2Ip,
   BufferIterator} from 'utils';
-import {Item} from './item';
+import {Item, ItemInterface} from './item';
 
 export interface SocketAddrItemDataJSONObject extends Object {
   sinFamilly:number;
@@ -18,7 +18,7 @@ interface SocketAddrItemJSONObject extends SocketAddrItemDataJSONObject {
 /**
  * Class describing a SocketAddr Item
  */
-export class SocketAddrItem extends Item {
+export class SocketAddrItem extends Item implements ItemInterface {
   private _sinFamilly:number= 2;
   private _sinPort:number;
   private _sinAddr:number;
@@ -33,7 +33,7 @@ export class SocketAddrItem extends Item {
    * @param {number} sinPort cummounication port number, default 44818
    */
   constructor(sinAddr:number|string=0,
-      typeCode:number=ItemType.DATA_SOCKADDR_O2T,
+      typeCode:number=ItemType.SOCKADDR_O2T,
       sinPort:number=44818) {
     super(typeCode, 16);
     checkSocketAddrTypeCode(typeCode);
@@ -148,8 +148,8 @@ export class SocketAddrItem extends Item {
  * @param {number} typeCode item type code to check
  */
 function checkSocketAddrTypeCode(typeCode:number):void {
-  if (typeCode != ItemType.DATA_SOCKADDR_O2T &&
-    typeCode != ItemType.DATA_SOCKADDR_T2O) {
+  if (typeCode != ItemType.SOCKADDR_O2T &&
+    typeCode != ItemType.SOCKADDR_T2O) {
     // eslint-disable-next-line max-len
     throw new Error(`ERROR: The Item type <${typeCode}> is not an available SocketAddr Item type`);
   }

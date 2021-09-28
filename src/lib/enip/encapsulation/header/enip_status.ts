@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 
-interface EnipStatusData {
+export interface EnipStatusObject {
   state:number,
   message:string
 }
@@ -15,7 +15,7 @@ export enum EnipStatus {
   FAIL_UNSUPPORTED_PROTOCOL = 0x69
 };
 
-export const ENIPStatusMsg:Record<string, EnipStatusData> = {
+export const ENIPStatusMsg:Record<string, EnipStatusObject> = {
   SUCCESS: {state: 1, message: 'SUCCESS'},
   FAIL_INVALID_COMMAND: {state: 0,
     message: 'FAIL: Sender issued an invalid ecapsulation command.'},

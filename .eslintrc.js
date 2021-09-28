@@ -17,5 +17,5 @@ module.exports = {
   ],
   'rules': {
     'max-len': ['error', {'ignoreComments': true}],
-  },
+  }
 };

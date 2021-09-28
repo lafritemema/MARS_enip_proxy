@@ -1,10 +1,19 @@
 import {EnipCPF, CPFJSONObject} from './cpf';
 import {EnipData} from './enip_data';
+import * as cip from 'cip';
 
 interface SendRRDataJSONObject extends Object {
   interfaceHandle:number,
   timeout:number,
   enipCpf:CPFJSONObject,
+}
+
+export interface SendRRDataBody {
+  type:string,
+  messageType:string
+  service: string,
+  messageStatus?:string,
+  data?:Buffer|undefined
 }
 
 /**
@@ -33,6 +42,28 @@ export class SendRRData implements EnipData {
    */
   public get length():number {
     return this._enipCpf.length + 6;
+  }
+
+  /**
+   * get the body (essential informations) of the element
+   */
+  public get body():SendRRDataBody {
+    const body:SendRRDataBody= {
+      type: this._enipCpf.dataItem.getType(),
+      messageType: (<cip.CIPMessage> this._enipCpf.dataItem.message).getType(),
+      service: (<cip.CIPMessage> this._enipCpf.dataItem.message).getService(),
+    };
+
+    if (this._enipCpf.dataItem.message?.data) {
+      body.data = this._enipCpf.dataItem.message?.data;
+    }
+
+    if ( body.messageType == 'RESPONSE') {
+      body.messageStatus = (<cip.message.Response> this._enipCpf.
+          dataItem
+          .message).getStatus();
+    }
+    return body;
   }
 
   /**

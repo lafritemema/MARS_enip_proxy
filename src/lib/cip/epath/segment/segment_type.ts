@@ -17,6 +17,18 @@ export enum SegmentType {
 }
 
 /**
+ * parse the metabuffer to extract the segment type
+ * @param {Buffer} metaBuffer buffer containing the segment type
+ * @return {number} the segment type code
+ */
+export function extractSegmentType(metaBuffer:Buffer):number {
+  const typeCode = extractType(metaBuffer);
+  checkSegmentType(typeCode);
+
+  return typeCode;
+}
+
+/**
  * Check if the Logical Segment Format code is conform
  * @param {number} typeCode format code
  */
@@ -28,11 +40,12 @@ function checkSegmentType(typeCode:number):void {
   }
 }
 
+
 /**
  * build a typed segment from the metadata buffer
  * @param {Buffer} metaBuffer metadata buffer
  * @return {Segment} a typed segment heritate from Segment
- */
+
 export function buildTypedSegment(metaBuffer:Buffer):Segment {
   // eslint-disable-next-line new-cap
   const typeCode = extractType(metaBuffer);
@@ -50,7 +63,7 @@ export function buildTypedSegment(metaBuffer:Buffer):Segment {
   }
   return segment;
 }
-
+*/
 // export {SegmentType, SegmentTypeKeys, SegmentTypeObject}
 /**
  * Extract the segment Type code from the metadata frame

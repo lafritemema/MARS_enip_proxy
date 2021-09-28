@@ -1,5 +1,5 @@
 import {CIPMessage} from 'cip';
-import {Item} from './item';
+import {Item, ItemInterface} from './item';
 import {AddressItem,
   AddressItemJSONObject} from './address_item';
 import {DataItem,
@@ -16,7 +16,7 @@ import {ItemIterator,
    * @return {DataItem} specific Data item instance
    */
 export function buildUnconnectedDataItem(data:CIPMessage) : DataItem {
-  return new DataItem(ItemType.DATA_UNCONNECTED_MESSAGE, data.length,
+  return new DataItem(ItemType.UNCONNECTED_MESSAGE, data.length,
       data);
 }
 
@@ -26,7 +26,7 @@ export function buildUnconnectedDataItem(data:CIPMessage) : DataItem {
  * @return {DataItem} specific Data item instance
  */
 export function buildConnectedDataItem(data:CIPMessage) : DataItem {
-  return new DataItem(ItemType.DATA_CONNECTED_TRANSPORT, data.length,
+  return new DataItem(ItemType.CONNECTED_TRANSPORT, data.length,
       data);
 }
 
@@ -44,7 +44,7 @@ export function buildNullAddressItem():AddressItem {
  * @return {AddressItem} specific Address item instance
  */
 export function buildConnectedAddressItem(connectionId:number):AddressItem {
-  return new AddressItem(ItemType.ADDR_CONNECTION_BASED, 4,
+  return new AddressItem(ItemType.CONNECTION_BASED, 4,
       [connectionId]);
 }
 
@@ -56,7 +56,7 @@ export function buildConnectedAddressItem(connectionId:number):AddressItem {
  */
 export function buildSequencedAddressItem(connectionId:number,
     sequenceNbr:number):AddressItem {
-  return new AddressItem(ItemType.ADDR_SEQUENCED_ADDRESS, 8,
+  return new AddressItem(ItemType.CONNECTION_BASED, 8,
       [connectionId, sequenceNbr]);
 }
 
@@ -71,5 +71,6 @@ export {
   SocketAddrItem as SocketAddr,
   ItemType as Type,
   ItemIterator as Iterator,
-  ItemIteration as Iteration};
+  ItemIteration as Iteration,
+  ItemInterface};
 

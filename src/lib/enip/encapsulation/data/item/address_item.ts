@@ -1,4 +1,4 @@
-import {Item} from './item';
+import {Item, ItemInterface} from './item';
 import {ItemType} from './item_type';
 import {BufferIterator} from 'utils';
 
@@ -6,13 +6,13 @@ export interface AddressItemJSONObject extends Object {
   itemType:string,
   length: number,
   connectionId?:number,
-  sequenceNbr?:number
+  sequenceNbr?:number,
 }
 
 /**
  * Class describing an Common Packet Format address item
  */
-export class AddressItem extends Item {
+export class AddressItem extends Item implements ItemInterface {
   private _data : number[];
 
   /**
@@ -27,6 +27,7 @@ export class AddressItem extends Item {
     super(addressTypeCode, length);
     this._data = data;
   }
+
 
   /**
    * Convert the AdressItem instance to JSON
@@ -87,11 +88,11 @@ export class AddressItem extends Item {
   }
 
   /**
-   * Get the group of item type
-   * @return {string} item group
+   * Get the item type under string format
+   * @return {string} item type
    */
-  public get group() : string {
-    return 'ADDRESS';
+  public getType():string {
+    return ItemType[this._type];
   }
 }
 

@@ -1,12 +1,12 @@
-import Identity, {IdentityJSON} from 'cip/identity';
+import * as cip from 'cip';
 import {BufferIterator} from 'utils';
-import {Item} from './item';
+import {Item, ItemInterface} from './item';
 import {ItemType} from './item_type';
 import {SocketAddrItem,
   SocketAddrItemDataJSONObject} from './socketaddr_item';
 
 export interface ListIdentityItemJSONObjet extends Object {
-  identity:IdentityJSON;
+  identity:cip.identity.IdentityJSON;
   socketAddress : SocketAddrItemDataJSONObject;
   protocol:number;
 }
@@ -14,22 +14,29 @@ export interface ListIdentityItemJSONObjet extends Object {
 /**
  * Class describing the list
  */
-export class ListIdentityItem extends Item {
+export class ListIdentityItem extends Item implements ItemInterface {
   private _encProtocol:number=1;
   private _socketAddress:SocketAddrItem;
-  private _identity:Identity;
+  private _identity:cip.Identity;
 
   /**
    * ListIdentityItem instance constructor
    * @param {Identity} identity Identity object instance describing the device identity
    * @param {SocketAddrItem} socketAddress SocketAddress Item instance describing the communication socket information
    */
-  constructor(identity:Identity,
+  constructor(identity:cip.Identity,
       socketAddress:SocketAddrItem) {
-    super(ItemType.DATA_LIST_IDENTITY,
+    super(ItemType.LIST_IDENTITY,
         identity.length + socketAddress.dataLength + 2);
     this._socketAddress = socketAddress;
     this._identity = identity;
+  }
+
+  /**
+   * Get the identity object
+   */
+  public get identity():cip.identity.IdentityJSON {
+    return this._identity.toJSON();
   }
 
   /**
@@ -54,7 +61,7 @@ export class ListIdentityItem extends Item {
     // => next X bytes where X = length of ListIdentityItem - length of socketaddr data - 2 byte for enc protocol
     const identityBuffer = buffIt.next(
         dataLength - socketAddress.dataLength - 2).value;
-    const identity = Identity.parse(identityBuffer);
+    const identity = cip.Identity.parse(identityBuffer);
 
     return new ListIdentityItem(
         identity,
@@ -80,7 +87,7 @@ export class ListIdentityItem extends Item {
     // => next X bytes where X = length of ListIdentityItem - length of socketaddr data - 2 byte for enc protocol
     const identityBuffer = buffIt.next(
         this.dataLength - socketAddress.dataLength - 2).value;
-    const identity = Identity.parse(identityBuffer);
+    const identity = cip.Identity.parse(identityBuffer);
 
     this._encProtocol = encProtocol;
     this._socketAddress = socketAddress;
@@ -122,11 +129,11 @@ export class ListIdentityItem extends Item {
   }
 
   /**
-   * Get the group of item type
-   * @return {string} item group
+   * Get the item type under string format
+   * @return {string} item type
    */
-  public get group() : string {
-    return 'DATA';
+  public getType():string {
+    return ItemType[this._type];
   }
 }
 
@@ -146,9 +153,9 @@ function checkEncapsulationProtocol(encProtocol:number) {
  * @param {number} typeCode istIdentity item type code
  */
 function checkTypeCode(typeCode:number) {
-  if (typeCode != ItemType.DATA_LIST_IDENTITY) {
+  if (typeCode != ItemType.LIST_IDENTITY) {
     // eslint-disable-next-line max-len
     throw new Error(`ERROR: The list identity item type code <${typeCode}> is not conform.
-    expected ${ItemType.DATA_LIST_IDENTITY}`);
+    expected ${ItemType.LIST_IDENTITY}`);
   }
 }

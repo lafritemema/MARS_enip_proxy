@@ -2,7 +2,7 @@
 import {EnipHeader,
   EnipHeaderJSONObject} from './enip_header';
 import {EnipCommand} from './enip_command';
-import {EnipStatus} from './enip_status';
+import {EnipStatus, ENIPStatusMsg} from './enip_status';
 
 /**
  * Build an NOP command header

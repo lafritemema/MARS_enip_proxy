@@ -7,6 +7,7 @@ import {MessageService,
   extractService} from './message_service';
 import {ResponseStatus,
   checkStatusCode} from './response_status';
+import {BufferIterator} from 'utils';
 
 /**
  * abstract class describing a CIP message
@@ -15,51 +16,65 @@ import {ResponseStatus,
 export abstract class Message {
     protected _service : number;
     protected _type : number;
+    protected _data : Buffer
 
     /**
      * Message object constructor
      * @param {number} type type of message => REQUEST or RESPONSE
      * @param {number} service service used
+     * @param {Buffer} data data to transfert
      */
-    public constructor(type:number, service:number) {
+    protected constructor(type:number,
+        service:number,
+        data:Buffer=Buffer.alloc(0)) {
       checkTypeCode(type);
       checkServiceCode(service);
 
       this._type = type;
       this._service = service;
+      this._data = data;
     }
 
     /**
-     * get the message service
+     * get the message service code
      * @return {number} message service
      */
-    public get service() : number {
-      return this.service;
+    public get service():number {
+      return this._service;
     }
+
     /**
-     * set the message service
-     * @param {number} service message service
+     * get the message type code
+     * @return {number} message type
      */
-    public set service(service:number) {
-      checkServiceCode(service);
-      this._service = service;
+    public get type():number {
+      return this._type;
+    }
+
+    /**
+     * Get the message data
+     * @param {number} data message data
+     */
+    public get data():Buffer {
+      return this._data;
     }
 
     /**
      * get the message type
      * @return {string} message type ('RESPONSE' or 'REQUEST')
      */
-    public get type():number {
-      return this._type;
+    public getType():string {
+      return MessageType[this._type];
     }
+
     /**
-     * set the message type
-     * @param {number} type message type
+     * get the message service under string format
+     * @return {string} message service
      */
-    public set type(type:number) {
-      checkTypeCode(type);
-      this._type=type;
+    public getService():string {
+      return MessageService[this._service];
     }
+
 
     /**
      * Parse the CIP message buffer
@@ -92,7 +107,6 @@ export abstract class Message {
  */
 export class RequestMessage extends Message {
   private _path : EPath;
-  private _data : Buffer;
 
   /**
    * Request message constructor
@@ -103,9 +117,8 @@ export class RequestMessage extends Message {
   public constructor(service:number,
       path:EPath,
       data:Buffer=Buffer.alloc(0)) {// empty buffer by default
-    super(MessageType.REQUEST, service);
+    super(MessageType.REQUEST, service, data);
     this._path = path;
-    this._data = data;
   }
 
   /**
@@ -125,22 +138,6 @@ export class RequestMessage extends Message {
   }
 
   /**
-   * Set the message data
-   * @param {Buffer} data message data
-   */
-  public set data(data:Buffer) {
-    this._data = data;
-  }
-
-  /**
-   * Get the message data
-   * @param {number} data message data
-   */
-  public get data():Buffer {
-    return this._data;
-  }
-
-  /**
    * Get the message lenght in byte
    * @return {number} message length in byte
    */
@@ -156,13 +153,18 @@ export class RequestMessage extends Message {
    */
   public static _parseRequest(service:number,
       requestBuffer:Buffer) : RequestMessage {
-    const pathSize = requestBuffer.readUInt8(0);
-    const pathBuffer = requestBuffer.slice(1, 1+(pathSize*2)+1);
+    // instanciate buffer iterator
+    const buffIt = new BufferIterator(requestBuffer);
 
-    const path = EPath.parse(pathBuffer);
-    const data = requestBuffer.slice(1+(pathSize * 2)+1);
+    // get pathsize
+    const pathSize = buffIt.next().value.readUInt8();
 
-    // ENHANCE : implement BufferIterator
+    // browse bufferIterator to extract information about epath
+    const path = EPath.parse(buffIt, pathSize);
+
+    // get all next elements of buffer => data
+    const data = buffIt.allNext().value;
+
     return new RequestMessage(service, path, data);
   }
 
@@ -202,7 +204,6 @@ export class RequestMessage extends Message {
  * @class ResponseMessage
  */
 export class ResponseMessage extends Message {
-  private _data : Buffer;
   private _status : number;
   private _addStatus : Buffer;
 
@@ -217,45 +218,26 @@ export class ResponseMessage extends Message {
       status:number,
       data:Buffer=Buffer.alloc(0),
       addStatus:Buffer=Buffer.alloc(0)) { // empty buffer by default
-    super(MessageType.RESPONSE, service);
+    super(MessageType.RESPONSE, service, data);
     checkStatusCode(status);
 
-    this._data = data;
     this._status = status;
     this._addStatus = addStatus;
   }
 
   /**
-   * Set the message data
-   * @param {Buffer} data message data
-   */
-  public set data(data:Buffer) {
-    this._data = data;
-  }
-
-  /**
-   * Get the message data
-   * @param {number} data message data
-   */
-  public get data():Buffer {
-    return this._data;
-  }
-
-  /**
-   * Set the message status
-   * @param {number} status message status
-   */
-  public set status(status:number) {
-    checkStatusCode(status);
-    this._status = status;
-  }
-
-  /**
-   * Get the message status
-   * @param {number} status message status
+   * Get the message status code
    */
   public get status():number {
     return this._status;
+  }
+
+  /**
+   * Get the message status under string format
+   * @return {string} status message status
+   */
+  public getStatus():string {
+    return ResponseStatus[this._status];
   }
 
   /**
@@ -278,22 +260,27 @@ export class ResponseMessage extends Message {
     const status = responseBuffer.readUInt8(1);
     const addStatusSize = responseBuffer.readUInt8(2);
 
-    let addStatus = undefined;
-    let data = undefined;
+    // if status = 0 => success ; else default
+    if (status == 0) {
+      let addStatus = undefined;
+      let data = undefined;
 
-    // ENHANCE : implement BufferIterator and tests addStatus
-    if (responseBuffer.length > 3) {
-      if (addStatusSize == 0) {
-        data = responseBuffer.slice(3);
-      } else {
-        addStatus = responseBuffer.slice(3, 3+(addStatusSize*2)+1);
-        if (responseBuffer.length > 3 + (addStatusSize*2) + 1) {
-          data = responseBuffer.slice(3+(addStatusSize*2)+1);
+      // ENHANCE : implement BufferIterator and tests addStatus
+      if (responseBuffer.length > 3) {
+        if (addStatusSize == 0) {
+          data = responseBuffer.slice(3);
+        } else {
+          addStatus = responseBuffer.slice(3, 3+(addStatusSize*2)+1);
+          if (responseBuffer.length > 3 + (addStatusSize*2) + 1) {
+            data = responseBuffer.slice(3+(addStatusSize*2)+1);
+          }
         }
       }
-    }
 
-    return new ResponseMessage(service, status, data, addStatus);
+      return new ResponseMessage(service, status, data, addStatus);
+    } else {
+      return new ResponseMessage(service, status);
+    }
   }
 
   /**

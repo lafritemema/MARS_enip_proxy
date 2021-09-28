@@ -7,6 +7,12 @@ interface ListIdentityJSONObjet extends Object {
   itemCount:number,
   identityItem:ListIdentityItemJSONObjet,
 }
+
+export interface ListIdentityBody {
+  type:string,
+  identity:ListIdentityItemJSONObjet
+}
+
 /**
  * Class describe ListIdentity command specific data
  */
@@ -21,6 +27,23 @@ export class ListIdentity implements EnipData {
    */
   public constructor(identityItem:ListIdentityItem) {
     this._identityItem = identityItem;
+  }
+
+  /**
+   * get identity informations
+   */
+  public get identity() {
+    return this._identityItem;
+  }
+
+  /**
+   * get the body (essential informations) of the element
+   */
+  public get body():ListIdentityBody {
+    return {
+      type: this._identityItem.getType(),
+      identity: this._identityItem.toJSON(),
+    };
   }
 
   /**

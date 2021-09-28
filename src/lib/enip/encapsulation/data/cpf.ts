@@ -21,7 +21,8 @@ export class EnipCPF {
    * @param {DataItem} dataItem DataItem instance containing encapsulated data
    * @param {Item} optionalItems list of other CPF items, default empty array
    */
-  public constructor(addressItem:item.Address,
+  public constructor(
+      addressItem:item.Address,
       dataItem:item.Data,
       optionalItems:Item[]=[]) {
     this._addressItem= addressItem;
@@ -49,6 +50,13 @@ export class EnipCPF {
       this._dataItem.length +
       metadataLength;
     }
+  }
+
+  /**
+   * get item containing data
+   */
+  public get dataItem() {
+    return this._dataItem;
   }
 
   /**
@@ -108,19 +116,20 @@ export class EnipCPF {
     const metadataBuff = Buffer.alloc(2);
     metadataBuff.writeUInt16LE(2 + this._optionalItems.length);
 
+    const buffArray = [metadataBuff,
+      this._addressItem.encode(),
+      this._dataItem.encode()];
+
     // encode informations about optionnal items if exists
-    let optItemBuff = Buffer.alloc(0);
+
     if (this._optionalItems.length > 0) {
       for (const oi of this._optionalItems) {
-        optItemBuff = Buffer.concat([optItemBuff, oi.encode()]);
+        // @ts-ignore
+        buffArray.push(oi.encode());
       }
     }
-
     // return a Buffer metadata + addressitem + data item + optionnal items ...
-    return Buffer.concat([metadataBuff,
-      this._addressItem.encode(),
-      this._dataItem.encode(),
-      optItemBuff]);
+    return Buffer.concat(buffArray);
   }
 
   /**
@@ -131,6 +140,7 @@ export class EnipCPF {
     const optObj = [];
     if (this._optionalItems.length>0) {
       for (const i of this._optionalItems) {
+        // @ts-ignore
         optObj.push(i.toJSON());
       }
     }

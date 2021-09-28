@@ -1,6 +1,7 @@
 // import {SegmentFactory} from './segments/segment_factory';
 // import {Segment} from './segments/segment';
 
+import {BufferIterator} from 'utils';
 import Segment, * as SEGMENT from './segment';
 
 /**
@@ -18,17 +19,37 @@ export class EPath {
   }
 
   /**
-   * Parse the buffer describing the Epath
+   * Browse the buffer iterator to extract data describing the Epath
    * @param {Buffer} pathBuffer : hex buffer to parse
    * @return {Path} EPath instance
-   */
   public static parse(pathBuffer:Buffer): EPath {
     // get only the 3 higher bits describing the segment to get the segment type
     // to obtain the type code
 
     const segments : Segment[] = [];
-
+    console.log(pathBuffer);
     const segIterator = new SEGMENT.Iterator(pathBuffer);
+    let segIt:SEGMENT.Iteration = segIterator.next();
+
+    while (!segIt.done) {
+      const segment = <Segment>segIt.value; // add segment type to avoid ts error
+      segments.push(segment);
+      segIt = segIterator.next();
+    }
+
+    return new EPath(segments);
+  }*/
+
+  /**
+   * Browse the buffer iterator to extract data describing the Epath
+   * @param {BufferIterator} bufferIterator the buffer iterator containing epath data
+   * @param {number} pathSize number of segments in the epath
+   * @return {Path} EPath instance
+   */
+  public static parse(bufferIterator:BufferIterator, pathSize:number) {
+    const segments : Segment[] = [];
+    const segIterator = new SEGMENT.Iterator(bufferIterator, pathSize);
+
     let segIt:SEGMENT.Iteration = segIterator.next();
 
     while (!segIt.done) {
@@ -94,7 +115,6 @@ export class EPath {
     for (const s of this._segmentList) {
       bufferList.push(s.encode());
     }
-
     return Buffer.concat(bufferList);
   }
   /**
