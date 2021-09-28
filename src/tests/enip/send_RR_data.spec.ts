@@ -29,7 +29,7 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
     length: 4,
   };
   const reqDataItemObj = {
-    itemType: 'DATA_UNCONNECTED_MESSAGE',
+    itemType: 'UNCONNECTED_MESSAGE',
     data: reqMsgObj,
     length: 12,
   };
@@ -55,7 +55,7 @@ describe('Parse/Encode SendRR encapsulated data for request/response', ()=> {
     data: '34000000',
   };
   const respDataItemObj = {
-    itemType: 'DATA_UNCONNECTED_MESSAGE',
+    itemType: 'UNCONNECTED_MESSAGE',
     data: respMsgObj,
     length: 12,
   };

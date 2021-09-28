@@ -1,6 +1,7 @@
 
 // eslint-disable-next-line max-len
-import {enipdata} from 'enip/encapsulation';
+import * as enip from 'enip';
+const enipdata = enip.data;
 
 describe('Parse/Encode a RegisterSession encapsulated data response', ()=> {
   const regSessionHexStr = '01000000';

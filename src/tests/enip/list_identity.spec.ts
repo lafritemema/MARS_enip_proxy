@@ -1,6 +1,9 @@
 // eslint-disable-next-line max-len
 import * as enip from 'enip';
-import Identity, {device} from 'cip/identity';
+import * as cip from 'cip';
+
+const Identity = cip.Identity;
+const device = cip.identity.device;
 
 describe('Parse/Encode an list identity encapsulated data response', ()=> {
   // eslint-disable-next-line max-len

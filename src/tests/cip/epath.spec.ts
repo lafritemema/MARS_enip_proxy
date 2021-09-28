@@ -1,4 +1,8 @@
-import EPath, {segment} from 'cip/epath';
+import * as cip from 'cip';
+import {BufferIterator} from 'utils';
+
+const EPath = cip.EPath;
+const segment = cip.epath.segment;
 
 describe('Test path interface', ()=> {
   const expectedSize2 = 2;
@@ -13,7 +17,7 @@ describe('Test path interface', ()=> {
     format: 'BIT_16',
     value: 37158};
 
-  const listPath2 = [0x20, 0x6c, 0x31, 0x26, 0x91];
+  const listPath2 = [0x20, 0x6c, 0x31, 0x00, 0x26, 0x91];
 
   const expectedSize3 = 3;
   const fExpectObj3 = {
@@ -36,7 +40,9 @@ describe('Test path interface', ()=> {
 
   test('Parse path with 2 segment (8 and 16 bits) ', ()=> {
     const bufferPath2 = Buffer.from(listPath2);
-    const path = EPath.parse(bufferPath2);
+    const buffIt = new BufferIterator(bufferPath2);
+
+    const path = EPath.parse(buffIt, expectedSize2);
     expect(path.pathSize).toEqual(expectedSize2);
 
     const fsegment = path.getSegment(0).toJSON();
@@ -48,7 +54,9 @@ describe('Test path interface', ()=> {
   /* eslint-disable max-len */
   test('Parse path with 3 segments\n-CLASS SEG\n-INSTANCE SEG\n-ATTRIBUTE SEG', ()=> {
     const bufferPath3 = Buffer.from(listPath3);
-    const path = EPath.parse(bufferPath3);
+    const buffIt = new BufferIterator(bufferPath3);
+
+    const path = EPath.parse(buffIt, expectedSize3);
     expect(path.pathSize).toEqual(expectedSize3);
 
     const fsegment = path.getSegment(0).toJSON();

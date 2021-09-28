@@ -31,7 +31,7 @@ describe('CPF encapsulation parsing and encoding', ()=> {
     length: 4,
   };
   const reqDataItemObj = {
-    itemType: 'DATA_UNCONNECTED_MESSAGE',
+    itemType: 'UNCONNECTED_MESSAGE',
     data: reqMsgObj,
     length: 12,
   };
@@ -51,7 +51,7 @@ describe('CPF encapsulation parsing and encoding', ()=> {
     data: '34000000',
   };
   const respDataItemObj = {
-    itemType: 'DATA_UNCONNECTED_MESSAGE',
+    itemType: 'UNCONNECTED_MESSAGE',
     data: respMsgObj,
     length: 12,
   };

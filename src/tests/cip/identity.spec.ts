@@ -1,4 +1,8 @@
-import Identity, {device} from 'cip/identity';
+import * as cip from 'cip';
+
+const Identity = cip.Identity;
+const device = cip.identity.device;
+
 
 describe('CIP identity object parsing and encoding', ()=> {
   // eslint-disable-next-line max-len

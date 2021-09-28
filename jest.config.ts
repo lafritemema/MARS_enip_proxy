@@ -201,7 +201,7 @@ export default {
     '**/src/tests/enip/list_identity.spec.ts',
     '**/src/tests/enip/register_session.spec.ts',
     '**/src/tests/enip/send_RR_data.spec.ts',
-    // '**/src/tests/proxy/enip.spec.ts',
+    '**/src/tests/proxy/enip.spec.ts',
   ],
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation

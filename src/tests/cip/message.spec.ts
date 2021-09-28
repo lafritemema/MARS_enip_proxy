@@ -1,5 +1,8 @@
-import EPath, {segment} from 'cip/epath';
-import CIPMessage, * as message from 'cip/message';
+import * as cip from 'cip';
+const CIPMessage = cip.CIPMessage;
+const segment = cip.epath.segment;
+const EPath = cip.EPath;
+const message = cip.message;
 
 describe('CIP mess parsing and encoding', ()=> {
   const requestHexString = '0e03206b24013005'; // get attribute single request
