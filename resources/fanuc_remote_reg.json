@@ -1,0 +1,1652 @@
+{
+  "httpAPI": {
+    "baseUrls": {
+      "/numericRegister": {
+        "description": "Operations on numeric registers of the Fanuc Controller",
+        "paths": {
+          "/single": {
+            "description": "Operations on one numeric register",
+            "globalUrl": "/numRegister/single",
+            "methods": {
+              "GET": {
+                "description": "Read one numeric register",
+                "globalUrl": "/numRegister/single?reg=<register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of value reads",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegSingleQuery"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getNumRegisterSingle"
+                }
+              },
+              "PUT": {
+                "description": "Write one numeric register",
+                "globalUrl": "/numRegister/single?reg=<register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of value to write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegSingleQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "value",
+                      "description": "32 bytes number to write on register",
+                      "type": "number",
+                      "warnings": [
+                        "number must be in unsigned 32 bytes number range"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "numRegBody"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setNumRegisterSingle"
+                }
+              }
+            }
+          },
+          "/block": {
+            "description": "Operations on several numeric register",
+            "globalUrl": "/numRegister/block",
+            "methods": {
+              "GET": {
+                "description": "Read several numeric registers",
+                "globalUrl": "/numRegister/block?startReg=<register>&blokSize=<nbr_of_register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of values read",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegBlockQuery"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getNumRegisterBlock"
+                }
+              },
+              "PUT": {
+                "description": "Write several numeric registers",
+                "globalUrl": "/numRegister/block?reg=<register>&blockSize=<nbr_of_register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of values write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegBlockQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "values",
+                      "type": "number[]",
+                      "description": "list of 32 bytes numbers to write",
+                      "warnings": [
+                        "numbers must be in unsigned 32 bytes number range according the type (int or float)",
+                        "list size must be equal to query blockSize parameter"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multipleNumRegBody"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setNumRegisterBlock"
+                }
+              }
+            }
+          },
+          "/all": {
+            "description": "Operations on all numeric register",
+            "globalUrl": "/numRegister/all",
+            "methods": {
+              "GET": {
+                "description": "Read all numeric registers",
+                "globalUrl": "/numRegister/all?type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "type",
+                      "description": "type of value reads",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegAllQuery"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getNumRegisterAll"
+                }
+              },
+              "PUT": {
+                "description": "Write all numeric register",
+                "globalUrl": "/numRegister/all?type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "type",
+                      "description": "type of value to write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegAllQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "values",
+                      "description": "list of 32 bytes numbers to write on registers",
+                      "type": "number[]",
+                      "warnings": [
+                        "numbers must be in the unsigned 32 bytes number range according the type (int or float)",
+                        "list size must be equal to the number of numeric registers available"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multipleNumRegBody"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setNumRegisterAll"
+                }
+              }
+            }
+          }
+        }
+      },
+      "/stringRegister": {
+        "description": "Operations on string registers of the Fanuc Controller",
+        "paths": {
+          "/single": {
+            "description": "Operations on one string register",
+            "globalUrl": "/stringRegister/single",
+            "methods": {
+              "GET": {
+                "description": "Read one string register",
+                "globalUrl": "/stringRegister/single?reg=<register>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to read",
+                      "type": "integer",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "stringRegSingleQuery"
+                },
+                "remoteService": {
+                  "service": "getStringRegisterSingle"
+                }
+              },
+              "PUT": {
+                "description": "Write one string register",
+                "globalUrl": "/stringRegister/single?reg=<register>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to write",
+                      "type": "integer",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "stringRegSingleQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "text",
+                      "description": "text to write in the string register",
+                      "type": "string",
+                      "warnings": [
+                        "string lenght must be lower than or equal to 82 characters"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "stringRegBody"
+                },
+                "remoteService": {
+                  "service": "setStringRegisterSingle"
+                }
+              }
+            }
+          },
+          "/block": {
+            "description": "Operations on several string register",
+            "globalUrl": "/stringRegister/block",
+            "methods": {
+              "GET": {
+                "description": "Read several string registers",
+                "globalUrl": "/stringRegister/block?startReg=<register>&blokSize=<nbr_of_register>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to read",
+                      "type": "integer",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "stringRegBlockQuery"
+                },
+                "remoteService": {
+                  "service": "getStringRegisterBlock"
+                }
+              },
+              "PUT": {
+                "description": "Write several string registers",
+                "globalUrl": "/stringRegister/single?reg=<register>&blockSize=<nbr_of_register>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to write",
+                      "type": "integer",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "stringRegBlockQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "texts",
+                      "description": "list of texts to write in the string registers",
+                      "type": "string[]",
+                      "warnings": [
+                        "each strings of the list must be lower than or equal to 82 characters lenght",
+                        "the list size must be equal to the block size"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multipleStringRegBody"
+                },
+                "remoteService": {
+                  "service": "setStringRegisterBlock"
+                }
+              }
+            }
+          },
+          "/all": {
+            "description": "Operations on all string registers",
+            "globalUrl": "/stringRegister/all",
+            "methods": {
+              "GET": {
+                "description": "Read all string registers",
+                "globalUrl": "/stringRegister/all",
+                "remoteService": {
+                  "service": "getStringRegisterAll"
+                }
+              },
+              "PUT": {
+                "description": "Write all string registers",
+                "globalUrl": "/stringRegister/all",
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "values",
+                      "description": "list of texts to write in the string registers",
+                      "type": "string[]",
+                      "warnings": [
+                        "each strings of the list must be lower than or equal to 82 characters lenght",
+                        "the list size must be equal to the number of string registers available"
+                      ],
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multipleStringRegBody"
+                },
+                "remoteService": {
+                  "service": "setStringRegisterAll"
+                }
+              }
+            }
+          }
+        }
+      },
+      "/positionRegister": {
+        "description": "Operations on position registers of the Fanuc Controller",
+        "paths": {
+          "/single": {
+            "description": "Operations on one position register",
+            "globalUrl": "/positionRegister/single",
+            "methods": {
+              "GET": {
+                "description": "Read one position register",
+                "globalUrl": "/positionRegister/single?reg=<register>&type=<position_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of position",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegSingleQuery"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getPosRegisterSingle"
+                }
+              },
+              "PUT": {
+                "description": "Write one position register",
+                "globalUrl": "/positionRegister/single?reg=<register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "reg",
+                      "description": "id of register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of position value to write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegSingleQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "ut",
+                      "description": "user tool number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "uf",
+                      "description": "user frame number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "point",
+                      "description": "object describing the point to write",
+                      "type": "Point",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "posRegBody"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setPosRegisterSingle"
+                }
+              }
+            }
+          },
+          "/block": {
+            "description": "Operations on several position register",
+            "globalUrl": "/positionRegister/block",
+            "methods": {
+              "GET": {
+                "description": "Read several position registers",
+                "globalUrl": "/positionRegister/block?startReg=<register>&blokSize=<nbr_of_register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of position to read",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegBlockQuery"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getPosRegisterBlock"
+                }
+              },
+              "PUT": {
+                "description": "Write several position registers",
+                "globalUrl": "/positionRegister/block?reg=<register>&blockSize=<nbr_of_register>&type=<value_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "startReg",
+                      "description": "id of first register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "blockSize",
+                      "description": "number of register to write",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of position to write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegBlockQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "ut",
+                      "description": "user tool number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "uf",
+                      "description": "user frame number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "points",
+                      "description": "array of objects describing points to write",
+                      "type": "Point[]",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multiplePosRegBody"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setPosRegisterBlock"
+                }
+              }
+            }
+          },
+          "/all": {
+            "description": "Operations on all position registers",
+            "globalUrl": "/positionRegister/all",
+            "methods": {
+              "GET": {
+                "description": "Read all position registers",
+                "globalUrl": "/positionRegister/all?type=<position_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "type",
+                      "description": "type of value reads",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegAllQuery"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getPosRegisterAll"
+                }
+              },
+              "PUT": {
+                "description": "Write all position registesr",
+                "globalUrl": "/positionRegister/all?type=<position_type>",
+                "query": {
+                  "parameters": [
+                    {
+                      "name": "type",
+                      "description": "type of value to write",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "crt",
+                        "jnt"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "posRegAllQuery"
+                },
+                "body": {
+                  "parameters": [
+                    {
+                      "name": "ut",
+                      "description": "user tool number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "uf",
+                      "description": "user frame number",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "points",
+                      "description": "array of objects describing points to write",
+                      "type": "Point[]",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "multiplePosRegBody"
+                },
+                "transformations": [
+                  "posRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "setPosRegisterAll"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "remoteServices": {
+    "protocol": "Ethernet/IP",
+    "services": {
+      "getNumRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_BLOCK"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "{{type}}",
+            "size": 4
+          }
+        }
+      },
+      "getNumRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_SINGLE"
+        },
+        "response": {
+          "type": "{{type}}",
+          "size": 4
+        }
+      },
+      "getNumRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "GET_ATTRIBUTE_ALL"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "{{type}}",
+            "size": 4
+          }
+        }
+      },
+      "getStringRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_BLOCK"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "STRING",
+            "size": 89
+          }
+        }
+      },
+      "getStringRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_SINGLE"
+        },
+        "response": {
+          "type": "STRING",
+          "size": 89
+        }
+      },
+      "getStringRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "GET_ATTRIBUTE_ALL"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "STRING",
+            "size": 89
+          }
+        }
+      },
+      "getPosRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_BLOCK"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "{{type}}"
+          }
+        }
+      },
+      "getPosRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_SINGLE"
+        },
+        "response": {
+          "type": "{{type}}"
+        }
+      },
+      "getPosRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "GET_ATTRIBUTE_ALL"
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "{{type}}"
+          }
+        }
+      },
+      "getCurrentPosition": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            }
+          },
+          "service": "GET_ATTRIBUTE_SINGLE"
+        },
+        "instance": {
+          "type": "BIT_8",
+          "value": 1
+        },
+        "attribute": {
+          "type": "BIT_8",
+          "value": 1
+        },
+        "response": {
+          "type": "{{type}}"
+        }
+      },
+      "setNumRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_SINGLE",
+          "data": {
+            "type": "{{type}}",
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setNumRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_BLOCK",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "{{type}}"
+            },
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setNumRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "SET_ATTRIBUTE_ALL",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "{{type}}"
+            },
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setStringRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_BLOCK",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "STRING"
+            },
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setStringRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_SINGLE",
+          "data": {
+            "type": "STRING",
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setStringRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": 109
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "SET_ATTRIBUTE_ALL",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "STRING"
+            },
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setPosRegisterBlock": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_16",
+              "value": [
+                1,
+                "{{blockSize}}"
+              ]
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{startReg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_BLOCK",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "{{type}}"
+            },
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setPosRegisterSingle": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            },
+            "attribute": {
+              "type": "BIT_8",
+              "value": "{{reg}}"
+            }
+          },
+          "service": "SET_ATTRIBUTE_SINGLE",
+          "data": {
+            "type": "{{type}}",
+            "value": "{{value}}"
+          }
+        }
+      },
+      "setPosRegisterAll": {
+        "request": {
+          "epath": {
+            "class": {
+              "type": "BIT_8",
+              "value": "{{class}}"
+            },
+            "instance": {
+              "type": "BIT_8",
+              "value": 1
+            }
+          },
+          "service": "SET_ATTRIBUTE_ALL",
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "{{type}}"
+            },
+            "value": "{{value}}"
+          }
+        }
+      }
+    }
+  },
+  "validationSchemas": {
+    "schemas": {
+      "numRegSingleQuery": {
+        "schema": {
+          "$id": "numRegSingleQuery",
+          "type": "object",
+          "properties": {
+            "reg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "int",
+                "float"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "reg"
+          ]
+        }
+      },
+      "numRegAllQuery": {
+        "schema": {
+          "$id": "numRegAllQuery",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "int",
+                "float"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      },
+      "numRegBlockQuery": {
+        "schema": {
+          "$id": "numRegBlockQuery",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "int",
+                "float"
+              ]
+            },
+            "startReg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "blockSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          },
+          "required": [
+            "type",
+            "blockSize",
+            "startReg"
+          ]
+        }
+      },
+      "stringRegSingleQuery": {
+        "schema": {
+          "$id": "stringRegSingleQuery",
+          "type": "object",
+          "properties": {
+            "reg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            }
+          },
+          "required": [
+            "reg"
+          ]
+        }
+      },
+      "stringRegBlockQuery": {
+        "schema": {
+          "$id": "stringRegBlockQuery",
+          "type": "object",
+          "properties": {
+            "startReg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            },
+            "blockSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            }
+          },
+          "required": [
+            "startReg",
+            "blockSize"
+          ]
+        }
+      },
+      "posRegSingleQuery": {
+        "schema": {
+          "$id": "posRegSingleQuery",
+          "type": "object",
+          "properties": {
+            "reg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "crt",
+                "jnt"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "reg"
+          ]
+        }
+      },
+      "posRegAllQuery": {
+        "schema": {
+          "$id": "posRegAllQuery",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "crt",
+                "jnt"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      },
+      "posRegBlockQuery": {
+        "schema": {
+          "$id": "posRegBlockQuery",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "crt",
+                "jnt"
+              ]
+            },
+            "startReg": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "blockSize": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "type",
+            "blockSize",
+            "startReg"
+          ]
+        }
+      },
+      "posRegBody": {
+        "schema": {
+          "$id": "posRegBody",
+          "type": "object",
+          "properties": {
+            "position": {
+              "$ref": "pointPosition"
+            }
+          },
+          "required": [
+            "position"
+          ]
+        }
+      },
+      "multiplePosRegBody": {
+        "schema": {
+          "$id": "multiplePosRegBody",
+          "type": "object",
+          "properties": {
+            "positions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 100,
+              "items": {
+                "$ref": "pointPosition"
+              }
+            }
+          },
+          "required": [
+            "positions"
+          ]
+        }
+      },
+      "stringRegBody": {
+        "schema": {
+          "$id": "stringRegBody",
+          "type": "object",
+          "properties": {
+            "text": {
+              "$ref": "textRegister"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        }
+      },
+      "multipleStringRegBody": {
+        "schema": {
+          "$id": "multipleStringRegBody",
+          "type": "object",
+          "properties": {
+            "texts": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 25,
+              "items": {
+                "$ref": "textRegister"
+              }
+            }
+          },
+          "required": [
+            "texts"
+          ]
+        }
+      },
+      "numRegBody": {
+        "schema": {
+          "$id": "numRegBody",
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
+      "multipleNumRegBody": {
+        "schema": {
+          "$id": "multipleNumRegBody",
+          "type": "object",
+          "properties": {
+            "values": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 200,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "required": [
+            "values"
+          ]
+        }
+      },
+      "crtPosVector": {
+        "schema": {
+          "$id": "crtPointVector",
+          "type": "object",
+          "properties": {
+            "p": {
+              "type": "number"
+            },
+            "r": {
+              "type": "number"
+            },
+            "w": {
+              "type": "number"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "z": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "z",
+            "p",
+            "r",
+            "w"
+          ]
+        }
+      },
+      "jntPosVector": {
+        "schema": {
+          "$id": "jntPointVector",
+          "type": "object",
+          "properties": {
+            "j1": {
+              "type": "number"
+            },
+            "j2": {
+              "type": "number"
+            },
+            "j3": {
+              "type": "number"
+            },
+            "j4": {
+              "type": "number"
+            },
+            "j5": {
+              "type": "number"
+            },
+            "j6": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "j1",
+            "j2",
+            "j3",
+            "j4",
+            "j5",
+            "j6"
+          ]
+        }
+      },
+      "crtPosConfig": {
+        "schema": {
+          "$id": "crtPointConfig",
+          "type": "object",
+          "properties": {
+            "arm": {
+              "type": "string",
+              "enum": [
+                "TOWARD",
+                "BACKWARD"
+              ]
+            },
+            "forearm": {
+              "type": "string",
+              "enum": [
+                "UP",
+                "DOWN"
+              ]
+            },
+            "wrist": {
+              "type": "string",
+              "enum": [
+                "FLIP",
+                "NOFLIP"
+              ]
+            },
+            "j4": {
+              "type": "number"
+            },
+            "j5": {
+              "type": "number"
+            },
+            "j6": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "arm",
+            "forearm",
+            "wrist",
+            "j4",
+            "j5",
+            "j6"
+          ]
+        }
+      },
+      "pointPosition": {
+        "schema": {
+          "$id": "pointPosition",
+          "type": "object",
+          "properties": {
+            "uf": {
+              "type": "integer",
+              "minimum": -1
+            },
+            "ut": {
+              "type": "integer",
+              "minimum": -1
+            },
+            "e1": {
+              "type": "number"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "JOINT",
+                "CARTESIAN"
+              ]
+            }
+          },
+          "if": {
+            "properties": {
+              "type": {
+                "const": "CARTESIAN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "vector": {
+                "$ref": "crtPointVector"
+              },
+              "config": {
+                "$ref": "crtPointConfig"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "vector": {
+                "$ref": "jntPointVector"
+              },
+              "config": {
+                "const": null
+              }
+            }
+          },
+          "required": [
+            "e1",
+            "type",
+            "vector",
+            "uf",
+            "ut"
+          ]
+        }
+      },
+      "textRegister": {
+        "schema": {
+          "$id": "textRegister",
+          "type": "string",
+          "maxLength": 82
+        }
+      }
+    }
+  },
+  "transformations": {
+    "numRegTypeConversion": {
+      "description": "convert float or int type information from request to integer describing CIP service class",
+      "function": {
+        "arguments": "request, response, next",
+        "body": "if (request.query.type=='int'){request.query.type='INT';request.query.class=0x6b;} else {request.query.type='REAL';request.query.class=0x6c;} next();"
+      }
+    },
+    "posRegTypeConversion": {
+      "description": "convert crt or jnt type information from request to integer describing CIP service class",
+      "function": {
+        "arguments": "request, response, next",
+        "body": "if(request.query.type=='crt'){request.query.type='CRT_POSITION';request.query.class=0x7b} else {request.query.type='JNT_POSITION';request.query.class=0x7c} next();"
+      }
+    }
+  }
+}
