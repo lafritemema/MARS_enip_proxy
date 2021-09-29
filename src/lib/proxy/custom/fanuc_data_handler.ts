@@ -337,9 +337,9 @@ function encodeCrtPosition(position:PointPosition) {
   tbuff.writeUInt8(armConfig, 31);
 
   // external axes
-  tbuff.writeInt32LE(position.e1, 32); // write e1
-  tbuff.writeInt32LE(0, 36); // not implemented
-  tbuff.writeInt32LE(0, 40); // not implemented
+  tbuff.writeFloatLE(position.e1, 32); // write e1
+  tbuff.writeFloatLE(0, 36); // not implemented
+  tbuff.writeFloatLE(0, 40); // not implemented
 
   return tbuff;
 }
