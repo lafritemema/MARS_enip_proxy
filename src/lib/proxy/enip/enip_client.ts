@@ -9,6 +9,13 @@ import {EnipRemoteMessage,
   CipEpath} from '../custom/config_interfaces'; // interface for config
 import {ProxyError, TargetProtocolError} from '../proxy_error';
 
+interface TcpError extends Error {
+  errno:number,
+  code:string,
+  syscall:string,
+  address:string,
+  port:number
+}
 
 interface EnipRemoteRespMsg {
   session:number,
@@ -30,6 +37,8 @@ export class EnipClient extends EventEmitter {
   // private _udpClient:Socket=udp.createSocket('udp4');
   private _dataHandler:DataHandler;
   private _enipSession:number|null;
+  private _targetIp:string;
+  private _targetPort:number;
 
   /**
    * EnipClient instance constructor
@@ -39,50 +48,113 @@ export class EnipClient extends EventEmitter {
    */
   public constructor(ip:string, port:number=44818, dataHandler:DataHandler) {
     super();
+    this._targetIp=ip;
+    this._targetPort=port;
     this._enipSession=null;
     this._dataHandler=dataHandler;
+    this.configureHandler();
+  }
 
-    this._tcpClient.addListener('data', (dataBuffer)=> {
-      const enipMessage = EnipMessage.parse(dataBuffer);
-      const data = buildRemoteRespMsg(enipMessage);
+  /**
+   * tcpIp connection
+   */
+  public connect() {
+    this._tcpClient.connect(this._targetPort, this._targetIp);
+  }
 
-      if (data.status.state) {
-        switch (data.command) {
-          case 'RegisterSession':
-            this.emit('RegisterSession', data.session);
-            break;
-          case 'SendRRData':
-            this.emit('SendRRData', data);
-            this.removeAllListeners('SendRRData');
-            break;
-        }
-      } else {
-        this.emit('error');
+  /**
+   * register a session
+   */
+  public registerSession():void {
+    const enipHeader = enip.header.buildRegSession();
+    const enipData = new enip.data.RegisterSession();
+    const enipMessage = new EnipMessage(enipHeader, enipData);
+
+    this._tcpClient.write(enipMessage.encode(), (error)=>{
+      if (error) {
+        this.emit('error', error);
       }
     });
+  }
 
-    this.on('RegisterSession', (session)=>{
-      this._enipSession = session;
+  /**
+   * Configure the tcpclient handler
+   */
+  private configureHandler() {
+    this._tcpClient.on('data', (dataBuffer:Buffer)=>{
+      this.emit('enipData', dataBuffer);
+    });
+    this._tcpClient.on('connect', ()=>{
+      this.emit('enipConnect');
+    });
+    this._tcpClient.on('end', ()=>{
+      this.emit('tcpEnd');
+    });
+    this._tcpClient.on('error', (error:TcpError)=>{
+      this.emit('enipError', error);
     });
 
-    this._tcpClient.connect(port, ip, ()=> {
-      this.emit('connect');
-      this.registerSession();
-    });
+    this.on('enipConnect', this.connectTcpEventHandler);
+    this.on('enipSession', this.sessionTcpEventHandler);
+    this.on('enipData', this.dataTcpEventHandler);
+  }
+
+  /**
+   * handler to perform processing in reaction to socket 'data' event
+   * @param {Buffer} dataBuffer data buffer
+   */
+  private dataTcpEventHandler(dataBuffer:Buffer) : void {
+    const enipMessage = EnipMessage.parse(dataBuffer);
+    const data = buildRemoteRespMsg(enipMessage);
+
+    if (data.status.state) {
+      switch (data.command) {
+        case 'RegisterSession':
+          this.emit('enipSession', data.session);
+          break;
+        case 'SendRRData':
+          this.emit('SendRRData', data);
+          this.removeAllListeners('SendRRData');
+          break;
+      }
+    } else {
+      this.emit('default');
+    }
+  }
+
+  /**
+   * handler to perform processing in reaction to socket 'connect' event
+   */
+  private connectTcpEventHandler() {
+    this.registerSession();
+  }
+
+  /**
+   * handler to perform processing in reaction to socket 'end' event
+   */
+  private endTcpEventHandler():void {
+    this.emit('end');
+  }
+
+  /**
+   * handler to perform processing in reaction to this 'session' event
+   * @param {number} session communication session code
+   */
+  private sessionTcpEventHandler(session:number) {
+    this._enipSession = session;
+    this.emit('session');
   }
 
   /**
    * Send unconnected message
    * @param {object} enipRemoteMsg object describing a enip remote service
-   * @param {Buffer} data buffer describing the data to send
+   * @param {function} callback handler function
    */
   public sendUnconnectedMsg(enipRemoteMsg:EnipRemoteMessage,
       callback:(error:Error|null, data?:object|undefined)=>void):void {
     if (!this._enipSession) {
       throw new Error('No session open for enip communication.');
     }
-
-    console.log(JSON.stringify(enipRemoteMsg));
 
     const requestMsg = enipRemoteMsg.request;
     const responseMsg = enipRemoteMsg.response ?
@@ -91,8 +163,6 @@ export class EnipClient extends EventEmitter {
 
     // define epath
     const epath = buildLogicalEpath(requestMsg.epath);
-    // LOG
-    console.log(epath.toJSON());
 
     // encode data
     try {
@@ -155,28 +225,12 @@ export class EnipClient extends EventEmitter {
       callback(<ProxyError>error);
     }
   }
-
-  /**
-   *
-   */
-  private registerSession():void {
-    const enipHeader = enip.header.buildRegSession();
-    const enipData = new enip.data.RegisterSession();
-    const enipMessage = new EnipMessage(enipHeader, enipData);
-
-    this._tcpClient.write(enipMessage.encode(), function(error) {
-      if (error) {
-        throw error;
-      }
-    });
-  }
-  // await this._tcpClient.listener
 }
 
 /**
  * build a logical epath object
- * @param {EnipObject} enipNode describing the targeted element
- * @return {Epath} enip epath object
+ * @param {CipEpath}epathMsg opbject describing epath
+ * @return {Epath} cip Epath instance
  */
 function buildLogicalEpath(epathMsg:CipEpath) : cip.EPath {
   const pathArray:cip.epath.segment.Logical[] = [];
@@ -205,9 +259,9 @@ function buildLogicalEpath(epathMsg:CipEpath) : cip.EPath {
 }
 
 /**
- *
- * @param enipMsg
- * @returns
+ * build a response message object from EnipMessage instance
+ * @param {EnipMessage} enipMsg EnipMessade instance
+ * @return {EnipRemoteRespMsg} object describing the response
  */
 function buildRemoteRespMsg(enipMsg:EnipMessage) : EnipRemoteRespMsg {
   return {
@@ -218,21 +272,3 @@ function buildRemoteRespMsg(enipMsg:EnipMessage) : EnipRemoteRespMsg {
   };
 }
 
-
-/*
-this._tcpClient.addListener('data', (dataBuffer)=> {
-      console.log('data received');
-      const enipMessage = EnipMessage.parse(dataBuffer);
-      const data = buildRemoteRespMsg(enipMessage);
-      console.log(data);
-
-      if (data.status.state && data.command == 'RegisterSession') {
-        console.log('emit session open');
-        this._enipSession = data.session;
-        this.emit('session', this._enipSession.toString(16));
-      } else {
-        this.emit('data', data);
-      }
-    });
-
-    */

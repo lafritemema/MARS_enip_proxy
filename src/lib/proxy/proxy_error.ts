@@ -205,3 +205,10 @@ export class DataHanlderError extends ProxyError {
     super(503, 'ERR_DATA_HANDLING', message);
   }
 }
+/*
+export class ConfigurationError extends ProxyError {
+  constructor(message:string) {
+    super(503, 'ERR_DATA_HANDLING', message);
+  }
+}
+*/

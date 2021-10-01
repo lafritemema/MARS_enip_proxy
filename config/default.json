@@ -1,0 +1,11 @@
+{
+  "remoteServer":{
+    "protocol":"enip",
+    "ipv4":"127.0.0.5",
+    "port":44818
+  },
+  "http":{
+    "apiRegister":"./resources/fanuc_api_reg.json",
+    "port":8000
+  }
+}
