@@ -12,8 +12,7 @@
                 "description": "Read one numeric register",
                 "globalUrl": "/numRegister/single?reg=<register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "reg",
                       "description": "id of register to read",
                       "type": "integer",
@@ -43,8 +42,7 @@
                 "description": "Write one numeric register",
                 "globalUrl": "/numRegister/single?reg=<register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "reg",
                       "description": "id of register to write",
                       "type": "integer",
@@ -64,17 +62,12 @@
                   "validationSchema": "numRegSingleQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "value",
-                      "description": "32 bytes number to write on register",
-                      "type": "number",
-                      "warnings": [
-                        "number must be in unsigned 32 bytes number range"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "value",
+                    "description": "32 bytes number to write on register",
+                    "type": "number",
+                    "optional": false
+                  }],
                   "validationSchema": "numRegBody"
                 },
                 "transformations": [
@@ -82,6 +75,68 @@
                 ],
                 "remoteService": {
                   "service": "setNumRegisterSingle"
+                }
+              },
+              "SUBSCRIBE": {
+                "description": "init tracker for value of one numeric register",
+                "globalUrl": "/numRegister/single?reg=<register>&type=<type>",
+                "query": {
+                  "parameters": [{
+                      "name": "reg",
+                      "description": "id of register to read",
+                      "type": "integer",
+                      "optional": false
+                    },
+                    {
+                      "name": "type",
+                      "description": "type of value reads",
+                      "type": "string",
+                      "optional": false,
+                      "enum": [
+                        "int",
+                        "float"
+                      ]
+                    }
+                  ],
+                  "validationSchema": "numRegSingleQuery"
+                },
+                "body": {
+                  "parameters": [{
+                      "name": "value",
+                      "description": "32 bytes number value to track for register",
+                      "type": "number",
+                      "optional": true
+                    },
+                    {
+                      "name": "tracker",
+                      "description": "type of tracker",
+                      "type": "string",
+                      "enum": [
+                        "report",
+                        "alert"
+                      ],
+                      "optional": false
+                    },
+                    {
+                      "name": "interval",
+                      "description": "interval for tracking request",
+                      "type": "number",
+                      "optional": false
+                    },
+                    {
+                      "name": "id",
+                      "description": "string id for tracker",
+                      "type": "string",
+                      "optional": false
+                    }
+                  ],
+                  "validationSchema": "traceNumRegBody"
+                },
+                "transformations": [
+                  "numRegTypeConversion"
+                ],
+                "remoteService": {
+                  "service": "getNumRegisterSingle"
                 }
               }
             }
@@ -94,8 +149,7 @@
                 "description": "Read several numeric registers",
                 "globalUrl": "/numRegister/block?startReg=<register>&blokSize=<nbr_of_register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to read",
                       "type": "integer",
@@ -131,8 +185,7 @@
                 "description": "Write several numeric registers",
                 "globalUrl": "/numRegister/block?reg=<register>&blockSize=<nbr_of_register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to write",
                       "type": "integer",
@@ -158,18 +211,16 @@
                   "validationSchema": "numRegBlockQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "values",
-                      "type": "number[]",
-                      "description": "list of 32 bytes numbers to write",
-                      "warnings": [
-                        "numbers must be in unsigned 32 bytes number range according the type (int or float)",
-                        "list size must be equal to query blockSize parameter"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "values",
+                    "type": "number[]",
+                    "description": "list of 32 bytes numbers to write",
+                    "warnings": [
+                      "numbers must be in unsigned 32 bytes number range according the type (int or float)",
+                      "list size must be equal to query blockSize parameter"
+                    ],
+                    "optional": false
+                  }],
                   "validationSchema": "multipleNumRegBody"
                 },
                 "transformations": [
@@ -189,18 +240,16 @@
                 "description": "Read all numeric registers",
                 "globalUrl": "/numRegister/all?type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "type",
-                      "description": "type of value reads",
-                      "type": "string",
-                      "optional": false,
-                      "enum": [
-                        "int",
-                        "float"
-                      ]
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "type",
+                    "description": "type of value reads",
+                    "type": "string",
+                    "optional": false,
+                    "enum": [
+                      "int",
+                      "float"
+                    ]
+                  }],
                   "validationSchema": "numRegAllQuery"
                 },
                 "transformations": [
@@ -214,33 +263,29 @@
                 "description": "Write all numeric register",
                 "globalUrl": "/numRegister/all?type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "type",
-                      "description": "type of value to write",
-                      "type": "string",
-                      "optional": false,
-                      "enum": [
-                        "int",
-                        "float"
-                      ]
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "type",
+                    "description": "type of value to write",
+                    "type": "string",
+                    "optional": false,
+                    "enum": [
+                      "int",
+                      "float"
+                    ]
+                  }],
                   "validationSchema": "numRegAllQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "values",
-                      "description": "list of 32 bytes numbers to write on registers",
-                      "type": "number[]",
-                      "warnings": [
-                        "numbers must be in the unsigned 32 bytes number range according the type (int or float)",
-                        "list size must be equal to the number of numeric registers available"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "values",
+                    "description": "list of 32 bytes numbers to write on registers",
+                    "type": "number[]",
+                    "warnings": [
+                      "numbers must be in the unsigned 32 bytes number range according the type (int or float)",
+                      "list size must be equal to the number of numeric registers available"
+                    ],
+                    "optional": false
+                  }],
                   "validationSchema": "multipleNumRegBody"
                 },
                 "transformations": [
@@ -265,14 +310,12 @@
                 "description": "Read one string register",
                 "globalUrl": "/stringRegister/single?reg=<register>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "reg",
-                      "description": "id of register to read",
-                      "type": "integer",
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "reg",
+                    "description": "id of register to read",
+                    "type": "integer",
+                    "optional": false
+                  }],
                   "validationSchema": "stringRegSingleQuery"
                 },
                 "remoteService": {
@@ -283,28 +326,24 @@
                 "description": "Write one string register",
                 "globalUrl": "/stringRegister/single?reg=<register>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "reg",
-                      "description": "id of register to write",
-                      "type": "integer",
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "reg",
+                    "description": "id of register to write",
+                    "type": "integer",
+                    "optional": false
+                  }],
                   "validationSchema": "stringRegSingleQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "text",
-                      "description": "text to write in the string register",
-                      "type": "string",
-                      "warnings": [
-                        "string lenght must be lower than or equal to 82 characters"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "text",
+                    "description": "text to write in the string register",
+                    "type": "string",
+                    "warnings": [
+                      "string lenght must be lower than or equal to 82 characters"
+                    ],
+                    "optional": false
+                  }],
                   "validationSchema": "stringRegBody"
                 },
                 "remoteService": {
@@ -321,8 +360,7 @@
                 "description": "Read several string registers",
                 "globalUrl": "/stringRegister/block?startReg=<register>&blokSize=<nbr_of_register>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to read",
                       "type": "integer",
@@ -345,8 +383,7 @@
                 "description": "Write several string registers",
                 "globalUrl": "/stringRegister/single?reg=<register>&blockSize=<nbr_of_register>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to write",
                       "type": "integer",
@@ -362,18 +399,16 @@
                   "validationSchema": "stringRegBlockQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "texts",
-                      "description": "list of texts to write in the string registers",
-                      "type": "string[]",
-                      "warnings": [
-                        "each strings of the list must be lower than or equal to 82 characters lenght",
-                        "the list size must be equal to the block size"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "texts",
+                    "description": "list of texts to write in the string registers",
+                    "type": "string[]",
+                    "warnings": [
+                      "each strings of the list must be lower than or equal to 82 characters lenght",
+                      "the list size must be equal to the block size"
+                    ],
+                    "optional": false
+                  }],
                   "validationSchema": "multipleStringRegBody"
                 },
                 "remoteService": {
@@ -397,18 +432,16 @@
                 "description": "Write all string registers",
                 "globalUrl": "/stringRegister/all",
                 "body": {
-                  "parameters": [
-                    {
-                      "name": "values",
-                      "description": "list of texts to write in the string registers",
-                      "type": "string[]",
-                      "warnings": [
-                        "each strings of the list must be lower than or equal to 82 characters lenght",
-                        "the list size must be equal to the number of string registers available"
-                      ],
-                      "optional": false
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "values",
+                    "description": "list of texts to write in the string registers",
+                    "type": "string[]",
+                    "warnings": [
+                      "each strings of the list must be lower than or equal to 82 characters lenght",
+                      "the list size must be equal to the number of string registers available"
+                    ],
+                    "optional": false
+                  }],
                   "validationSchema": "multipleStringRegBody"
                 },
                 "remoteService": {
@@ -430,8 +463,7 @@
                 "description": "Read one position register",
                 "globalUrl": "/positionRegister/single?reg=<register>&type=<position_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "reg",
                       "description": "id of register to read",
                       "type": "integer",
@@ -461,8 +493,7 @@
                 "description": "Write one position register",
                 "globalUrl": "/positionRegister/single?reg=<register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "reg",
                       "description": "id of register to write",
                       "type": "integer",
@@ -482,8 +513,7 @@
                   "validationSchema": "posRegSingleQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "ut",
                       "description": "user tool number",
                       "type": "integer",
@@ -521,8 +551,7 @@
                 "description": "Read several position registers",
                 "globalUrl": "/positionRegister/block?startReg=<register>&blokSize=<nbr_of_register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to read",
                       "type": "integer",
@@ -558,8 +587,7 @@
                 "description": "Write several position registers",
                 "globalUrl": "/positionRegister/block?reg=<register>&blockSize=<nbr_of_register>&type=<value_type>",
                 "query": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "startReg",
                       "description": "id of first register to write",
                       "type": "integer",
@@ -585,8 +613,7 @@
                   "validationSchema": "posRegBlockQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "ut",
                       "description": "user tool number",
                       "type": "integer",
@@ -624,18 +651,16 @@
                 "description": "Read all position registers",
                 "globalUrl": "/positionRegister/all?type=<position_type>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "type",
-                      "description": "type of value reads",
-                      "type": "string",
-                      "optional": false,
-                      "enum": [
-                        "crt",
-                        "jnt"
-                      ]
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "type",
+                    "description": "type of value reads",
+                    "type": "string",
+                    "optional": false,
+                    "enum": [
+                      "crt",
+                      "jnt"
+                    ]
+                  }],
                   "validationSchema": "posRegAllQuery"
                 },
                 "transformations": [
@@ -649,23 +674,20 @@
                 "description": "Write all position registesr",
                 "globalUrl": "/positionRegister/all?type=<position_type>",
                 "query": {
-                  "parameters": [
-                    {
-                      "name": "type",
-                      "description": "type of value to write",
-                      "type": "string",
-                      "optional": false,
-                      "enum": [
-                        "crt",
-                        "jnt"
-                      ]
-                    }
-                  ],
+                  "parameters": [{
+                    "name": "type",
+                    "description": "type of value to write",
+                    "type": "string",
+                    "optional": false,
+                    "enum": [
+                      "crt",
+                      "jnt"
+                    ]
+                  }],
                   "validationSchema": "posRegAllQuery"
                 },
                 "body": {
-                  "parameters": [
-                    {
+                  "parameters": [{
                       "name": "ut",
                       "description": "user tool number",
                       "type": "integer",
@@ -1356,12 +1378,20 @@
           "$id": "posRegBody",
           "type": "object",
           "properties": {
-            "position": {
-              "$ref": "pointPosition"
+            "data": {
+              "type": "object",
+              "properties": {
+                "position": {
+                  "$ref": "pointPosition"
+                }
+              },
+              "required": [
+                "position"
+              ]
             }
           },
           "required": [
-            "position"
+            "data"
           ]
         }
       },
@@ -1370,17 +1400,25 @@
           "$id": "multiplePosRegBody",
           "type": "object",
           "properties": {
-            "positions": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 100,
-              "items": {
-                "$ref": "pointPosition"
-              }
+            "data": {
+              "type": "object",
+              "properties": {
+                "positions": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 100,
+                  "items": {
+                    "$ref": "pointPosition"
+                  }
+                }
+              },
+              "required": [
+                "positions"
+              ]
             }
           },
           "required": [
-            "positions"
+            "data"
           ]
         }
       },
@@ -1389,12 +1427,20 @@
           "$id": "stringRegBody",
           "type": "object",
           "properties": {
-            "text": {
-              "$ref": "textRegister"
+            "data": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "$ref": "textRegister"
+                }
+              },
+              "required": [
+                "text"
+              ]
             }
           },
           "required": [
-            "text"
+            "data"
           ]
         }
       },
@@ -1403,17 +1449,25 @@
           "$id": "multipleStringRegBody",
           "type": "object",
           "properties": {
-            "texts": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 25,
-              "items": {
-                "$ref": "textRegister"
-              }
+            "data": {
+              "type": "object",
+              "properties": {
+                "texts": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 25,
+                  "items": {
+                    "$ref": "textRegister"
+                  }
+                }
+              },
+              "required": [
+                "texts"
+              ]
             }
           },
           "required": [
-            "texts"
+            "data"
           ]
         }
       },
@@ -1422,12 +1476,20 @@
           "$id": "numRegBody",
           "type": "object",
           "properties": {
-            "value": {
-              "type": "number"
+            "data": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ]
             }
           },
           "required": [
-            "value"
+            "data"
           ]
         }
       },
@@ -1436,18 +1498,38 @@
           "$id": "multipleNumRegBody",
           "type": "object",
           "properties": {
-            "values": {
-              "type": "array",
-              "minItems": 1,
-              "maxItems": 200,
-              "items": {
-                "type": "number"
-              }
+            "data": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 200,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "values"
+              ]
             }
           },
           "required": [
-            "values"
+            "data"
           ]
+        }
+      },
+      "traceNumRegBody": {
+        "schema": {
+          "$id": "traceNumRegBody",
+          "type": "object",
+          "properties": {
+            "setting": {
+              "$ref": "requestSetting"
+            }
+          },
+          "required": ["setting"]
         }
       },
       "crtPosVector": {
@@ -1629,6 +1711,76 @@
           "$id": "textRegister",
           "type": "string",
           "maxLength": 82
+        }
+      },
+      "requestSetting": {
+        "schema": {
+          "$id": "requestSetting",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "tracker"
+              ]
+            }
+          },
+          "allOf": [{
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "tracker"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "settings": {
+                  "$ref": "trackerSettings"
+                }
+              }
+            }
+          }],
+          "required": ["type", "settings"]
+        }
+      },
+      "trackerSettings": {
+        "schema": {
+          "$id": "trackerSettings",
+          "type": "object",
+          "properties": {
+            "tracker": {
+              "type": "string",
+              "enum": [
+                "report",
+                "alert"
+              ]
+            },
+            "value": {
+              "type": "object"
+            },
+            "interval": {
+              "type": "number",
+              "minimum": 500,
+              "maximum": 5000
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "if": {
+            "properties": {
+              "tracker": {
+                "const": "alert"
+              }
+            }
+          },
+          "then": {
+            "required": ["tracker", "value", "interval", "id"]
+          },
+          "else": {
+            "required": ["tracker", "interval", "id"]
+          }
         }
       }
     }
