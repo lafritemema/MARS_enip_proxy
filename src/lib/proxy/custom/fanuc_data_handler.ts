@@ -167,7 +167,6 @@ function bufferToNumber(numBuffer:Buffer, type:'INT'|'REAL'):number|number[] {
   } else {
     // @ts-ignore
     const num = readFct.call(numBuffer);
-    console.log(num);
     return num;
   }
 }

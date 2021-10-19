@@ -241,6 +241,13 @@ export class ResponseMessage extends Message {
   }
 
   /**
+   * return true if no error on cip message
+   */
+  public get isSuccess():Boolean {
+    return this._status == ResponseStatus.Success;
+  }
+
+  /**
    * Get the message lenght in byte
    * @return {number} message length in byte
    */

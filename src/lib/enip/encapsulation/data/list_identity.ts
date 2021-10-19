@@ -9,7 +9,7 @@ interface ListIdentityJSONObjet extends Object {
 }
 
 export interface ListIdentityBody {
-  type:string,
+  itemType:string,
   identity:ListIdentityItemJSONObjet
 }
 
@@ -41,9 +41,27 @@ export class ListIdentity implements EnipData {
    */
   public get body():ListIdentityBody {
     return {
-      type: this._identityItem.getType(),
+      itemType: this._identityItem.getType(),
       identity: this._identityItem.toJSON(),
     };
+  }
+
+  /**
+   * return true if no error on cip message
+   */
+  public get isSuccess():Boolean {
+    // ENHANCE : not very clean, to enhance
+    // return true if no error on cip message
+    // always true for list_indentity type msg
+    return true;
+  }
+
+  /**
+   * return true is the message has a body
+   */
+  public get hasBody():Boolean {
+    // list_identity message always have a body
+    return true;
   }
 
   /**

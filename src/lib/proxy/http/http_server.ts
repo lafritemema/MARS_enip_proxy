@@ -2,13 +2,16 @@
 import express, {Request, Response, Router} from 'express';
 import config from 'config';
 import {EnipRemoteMessage,
-  RouterConfiguration} from '../custom/config_interfaces';
+  RequestSetting,
+  RouterConfiguration,
+  TrackerSettings} from '../custom/config_interfaces';
 import {buildRouterFromConfig} from './config_router';
 import filehandle from 'fs/promises';
-import {EnipClient} from '../enip/enip_client';
+import {EnipClient, EnipDataPacket} from '../enip/enip_client';
 import {FanucDataHandler} from '../custom/fanuc_data_handler';
 import {ProxyError} from '../proxy_error';
 import {EventEmitter} from 'events';
+import {randomBytes} from 'crypto';
 
 interface TcpError extends Error {
   errno:number,
@@ -119,22 +122,23 @@ try {
 
 // in case of success
 // define this middleware to get msg from custom router and send enip message
-enipClient.on('enipConnect', ()=>{
+enipClient.on('connect', ()=>{
   serverStatusManager
       .emit('log', 'CONSOLE', 'Enip client connected to target.');
 
   serverStatus.enipClientConnection=true;
 });
 
-enipClient.on('enipSession', (session)=>{
+enipClient.on('session', (enipdata:EnipDataPacket)=>{
   serverStatus.enipClientSession=true;
   serverStatusManager
-      .emit('log', 'CONSOLE', 'Enip client session open with id :'+session);
+      // eslint-disable-next-line max-len
+      .emit('log', 'CONSOLE', 'Enip client session open with id :'+enipdata.session);
 
   serverStatusManager.emit('startServer');
 });
 
-enipClient.on('enipError', (error:TcpError)=>{
+enipClient.on('error', (error:TcpError)=>{
   if (error.syscall == 'connect' &&
       enipConnectAttempt < maxEnipConnectAttempt) {
     enipConnectAttempt+=1;
@@ -174,15 +178,50 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
         .locals
         .remoteMessage;
 
-    // send message build by config_router
-    enipClient.sendUnconnectedMsg(remoteMessage,
-        (error, data) => {
-          if (error) {
-            next(error);
-          } else {
-            response.status(200).send(data);
-          };
+    const requestId = randomBytes(2).toString('hex');
+
+    switch (request.method) {
+      case 'GET':
+        enipClient.once(requestId, (data)=>{
+          response.status(200).send({status: 'SUCCESS', data: data});
         });
+        enipClient.sendUnconnectedMsg(requestId, remoteMessage);
+        break;
+      case 'PUT':
+        enipClient.once(requestId, (data)=>{
+          response.status(200).send({status: 'SUCCESS'});
+        });
+        enipClient.sendUnconnectedMsg(requestId, remoteMessage);
+        break;
+      case 'SUBSCRIBE':
+        const setting = <RequestSetting>request.body.setting;
+        const trackerSettings = <TrackerSettings>setting.settings;
+
+        enipClient.once(requestId, (data)=>{
+          const treqid = randomBytes(2).toString('hex');
+
+          enipClient.on(treqid, (enipPacket)=>{
+            switch (trackerSettings.tracker) {
+              case 'alert':
+                if (isEqual(<object>trackerSettings.value, enipPacket.data)) {
+                  console.log('alert' + enipPacket);
+                  enipClient.clearTracker(treqid);
+                }
+                break;
+              case 'report':
+                console.log(enipPacket);
+                break;
+            }
+          });
+          enipClient.initTracker(treqid,
+              remoteMessage,
+              trackerSettings.interval);
+
+          response.status(200).send({status: 'SUCCESS'});
+        });
+        enipClient.sendUnconnectedMsg(requestId, remoteMessage);
+        break;
+    }
   });
 
   // add middleware to get error from custom router
@@ -194,7 +233,8 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
       const proxyError = <ProxyError>error;
       const errorDesc = proxyError.toJSON();
 
-      response.status(proxyError.httpCode).send(errorDesc);
+      response.status(proxyError.httpCode)
+          .send({status: 'FAIL', error: errorDesc});
     } else {
       // if not a ProxyError, raise it
       throw error;
@@ -203,7 +243,6 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
 
   // add customRouter in the server
   server.use('/', customRouter);
-
   serverStatusManager.emit('log',
       'CONSOLE',
       'Router ready to process HTTP request');
@@ -278,4 +317,14 @@ function numericParser(request:Request,
     }
   }
   next();
+}
+
+/**
+ * Check if two javascript objects are equals
+ * @param {object} obj1 first object to compare
+ * @param {object} obj2 second object to compare
+ * @return {Boolean} true if object are equal else false
+ */
+function isEqual(obj1:object, obj2:object) {
+  return JSON.stringify(obj1) == JSON.stringify(obj2);
 }

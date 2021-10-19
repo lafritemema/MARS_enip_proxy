@@ -171,6 +171,9 @@ for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
       case 'patch':
         route.patch(middlewares);
         break;
+      case 'subscribe':
+        route.subscribe(middlewares);
+        break;
       default:
         throw new Error(`ERROR: methods ${m} not implemeted \
         on the configurable router yet`);
@@ -249,7 +252,7 @@ function buildRemoteMessage(
 
     // get data from query and body
     const data = request.query;
-    if (request.body) {
+    if (request.body && request.body.data) {
       data.value = request.body;
     }
 

@@ -29,6 +29,24 @@ export class RegisterSession implements EnipData {
   }
 
   /**
+   * return true if no error on cip message
+   */
+  public get isSuccess():Boolean {
+    // ENHANCE : not very clean, to enhance
+    // return true if no error on cip message
+    // always true for register_session type msg
+    return true;
+  }
+
+  /**
+   * return true is the message has a body
+   */
+  public get hasBody():Boolean {
+    // register_session message never have a body
+    return false;
+  }
+
+  /**
    * Encode the RegisterSession instance to Buffer
    * @return {Buffer} datagram describing the ListIdentity
    */

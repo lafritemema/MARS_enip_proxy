@@ -78,19 +78,24 @@ export interface RemoteMessage {
 }
 
 export interface EnipRemoteMessage extends RemoteMessage{
-  request:{
-    epath: CipEpath,
-    service:CipService
-    data:EnipRequestData
-  },
-  response:{
-    type:CipType|'ARRAY',
-    items?:{
-      type:CipType,
-      size:number
-    }
+  request:EnipRemoteMessageReq,
+  response:EnipRemoteMessageRes
+}
+
+export interface EnipRemoteMessageReq {
+  epath: CipEpath,
+  service:CipService,
+  data:EnipRequestData
+}
+
+export interface EnipRemoteMessageRes {
+  type:CipType|'ARRAY',
+  items?:{
+    type:CipType,
+    size:number
   }
 }
+
 
 export interface EnipRequestData {
   type:string,
@@ -117,4 +122,19 @@ export interface Transformations {
     arguments:string,
     body:string
   }
+}
+
+export interface RequestSetting {
+  type:string,
+  settings: TypedSettings
+}
+
+export interface TypedSettings {
+}
+
+export interface TrackerSettings extends TypedSettings {
+  interval:number,
+  value?: object,
+  tracker: 'report'|'alert',
+  id: string
 }

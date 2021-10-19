@@ -9,7 +9,7 @@ interface SendRRDataJSONObject extends Object {
 }
 
 export interface SendRRDataBody {
-  type:string,
+  itemType:string,
   messageType:string
   service: string,
   messageStatus?:string,
@@ -44,12 +44,34 @@ export class SendRRData implements EnipData {
     return this._enipCpf.length + 6;
   }
 
+
+  /**
+   * return true if no error on cip message
+   */
+  public get isSuccess():Boolean {
+    // if the message is a response message
+    const cipMsg = this._enipCpf.dataItem.message;
+    if ( cipMsg?.getType() == 'RESPONSE') {
+      return (<cip.message.Response>cipMsg).isSuccess;
+    } else {
+      return true;
+    }
+  }
+
+  /**
+   * return true is the message has a body
+   */
+  public get hasBody():Boolean {
+    // sendrrdata message always have a body
+    return true;
+  }
+
   /**
    * get the body (essential informations) of the element
    */
   public get body():SendRRDataBody {
     const body:SendRRDataBody= {
-      type: this._enipCpf.dataItem.getType(),
+      itemType: this._enipCpf.dataItem.getType(),
       messageType: (<cip.CIPMessage> this._enipCpf.dataItem.message).getType(),
       service: (<cip.CIPMessage> this._enipCpf.dataItem.message).getService(),
     };

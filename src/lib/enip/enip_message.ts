@@ -52,6 +52,30 @@ export class EnipMessage {
     return this._header.getCommand();
   }
 
+  // ENHANCE not very clean, to enhance
+  /**
+   * return true if no error on message
+   */
+  public get isSuccess() {
+    if (this._header.getStatus().state) {
+      if (this._data) {
+        return this._data.isSuccess;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * return true is the message has a body
+   */
+  public get hasBody():Boolean {
+    // list_identity message always have a body
+    return this._data ? this._data.hasBody : false;
+  }
+
   /**
    * Get the data message body
    * @return {ListIdentityBody|SendRRBody|undefined} message body

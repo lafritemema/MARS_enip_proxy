@@ -1,13 +1,16 @@
 
-import {Socket} from 'net';
 // import * as udp from 'dgram';
 import {EventEmitter} from 'events';
 import * as cip from 'cip';
 import EnipMessage, * as enip from 'enip';
 import {DataHandler, HandledData} from './data_handler';
 import {EnipRemoteMessage,
-  CipEpath} from '../custom/config_interfaces'; // interface for config
+  CipEpath,
+  EnipRemoteMessageReq,
+  EnipRemoteMessageRes} from '../custom/config_interfaces'; // interface for config
 import {ProxyError, TargetProtocolError} from '../proxy_error';
+import NodeCache from 'node-cache';
+import {TcpClient} from './tcp_client';
 
 interface TcpError extends Error {
   errno:number,
@@ -17,15 +20,17 @@ interface TcpError extends Error {
   port:number
 }
 
-interface EnipRemoteRespMsg {
-  session:number,
-  command: string,
-  status:{
-    state:number,
-    message:string
-  },
-  body:object
+interface CachePacket {
+  responseType?: string|undefined,
+  usageType: 'standard'|'tracker',
+  timer:string;
 }
+
+export interface EnipDataPacket {
+  command: string,
+  session: number,
+  data: HandledData}
+
 
 type LogicalFormatKey = keyof typeof cip.epath.segment.logical.Format
 type CipService = keyof typeof cip.message.Service
@@ -33,13 +38,13 @@ type CipService = keyof typeof cip.message.Service
  * Class describing an enip client
  */
 export class EnipClient extends EventEmitter {
-  private _tcpClient:Socket = new Socket();
+  private _tcpClient:TcpClient = new TcpClient();
   // private _udpClient:Socket=udp.createSocket('udp4');
   private _dataHandler:DataHandler;
   private _enipSession:number|null;
   private _targetIp:string;
   private _targetPort:number;
-
+  private _cache:NodeCache = new NodeCache();
   /**
    * EnipClient instance constructor
    * @param {string} ip host to connect
@@ -69,163 +74,212 @@ export class EnipClient extends EventEmitter {
     const enipHeader = enip.header.buildRegSession();
     const enipData = new enip.data.RegisterSession();
     const enipMessage = new EnipMessage(enipHeader, enipData);
-
-    this._tcpClient.write(enipMessage.encode(), (error)=>{
-      if (error) {
-        this.emit('error', error);
-      }
+    this._cache.set('session', {
+      usageType: 'standard',
     });
+    this._tcpClient.send(enipMessage.encode(), 'session');
   }
 
   /**
    * Configure the tcpclient handler
    */
   private configureHandler() {
-    this._tcpClient.on('data', (dataBuffer:Buffer)=>{
-      this.emit('enipData', dataBuffer);
-    });
-    this._tcpClient.on('connect', ()=>{
-      this.emit('enipConnect');
-    });
-    this._tcpClient.on('end', ()=>{
-      this.emit('tcpEnd');
-    });
-    this._tcpClient.on('error', (error:TcpError)=>{
-      this.emit('enipError', error);
-    });
+    // handler for TcpClient tcpdata event
+    this._tcpClient.on('tcpdata', (tcpData:Buffer, requestId:string)=>{
+      const cpacket = <CachePacket> this._cache.get(requestId);
+      const enipMsg = EnipMessage.parse(tcpData);
+      let data:HandledData|undefined;
 
-    this.on('enipConnect', this.connectTcpEventHandler);
-    this.on('enipSession', this.sessionTcpEventHandler);
-    this.on('enipData', this.dataTcpEventHandler);
-  }
-
-  /**
-   * handler to perform processing in reaction to socket 'data' event
-   * @param {Buffer} dataBuffer data buffer
-   */
-  private dataTcpEventHandler(dataBuffer:Buffer) : void {
-    const enipMessage = EnipMessage.parse(dataBuffer);
-    const data = buildRemoteRespMsg(enipMessage);
-
-    if (data.status.state) {
-      switch (data.command) {
-        case 'RegisterSession':
-          this.emit('enipSession', data.session);
-          break;
-        case 'SendRRData':
-          this.emit('SendRRData', data);
-          this.removeAllListeners('SendRRData');
-          break;
+      // if enipMessage status state (enip header status) = true => success
+      if (enipMsg.isSuccess) {
+        // if there is a body in EnipMessage => cip message
+        if (enipMsg.hasBody) {
+          switch (enipMsg.command) {
+            case 'SendRRData':
+              const enipbody = <enip.data.SendRRBody> enipMsg.body;
+              data = enipbody.data ?
+                this._dataHandler.parse(enipbody.data, cpacket.responseType):
+                undefined;
+              break;
+            case 'ListIdentity':
+              data = <enip.data.ListIdentityBody>enipMsg.body;
+              break;
+          }
+        }
+        this.emit(requestId,
+            {command: enipMsg.command,
+              session: enipMsg.session,
+              data: data});
+      } else {
+        // default on enip request
+        // eslint-disable-next-line max-len
+        this.emit('failure', new TargetProtocolError('ERR_PROTOCOL_ENIP', 'ERROR: ENIP message transmission failure'));
       }
-    } else {
-      this.emit('default');
-    }
+      if (cpacket.usageType == 'standard') {
+        this._cache.del(requestId);
+      }
+    });
+
+    // handler for socket connect event
+    this._tcpClient.on('connect', ()=>{
+      this.registerSession();
+      this.emit('connect');
+    });
+    // handler for socket end event
+    this._tcpClient.on('end', ()=>{
+      this.emit('end');
+    });
+    // handler for error socket event
+    this._tcpClient.on('error', (error:TcpError)=>{
+      this.emit('error', error);
+    });
+
+    // handler for custom enipSession event
+    this.on('session', (data:EnipDataPacket)=>{
+      this._enipSession = data.session;
+    });
   }
 
   /**
-   * handler to perform processing in reaction to socket 'connect' event
-   */
-  private connectTcpEventHandler() {
-    this.registerSession();
-  }
-
-  /**
-   * handler to perform processing in reaction to socket 'end' event
-   */
-  private endTcpEventHandler():void {
-    this.emit('end');
-  }
-
-  /**
-   * handler to perform processing in reaction to this 'session' event
-   * @param {number} session communication session code
-   */
-  private sessionTcpEventHandler(session:number) {
-    this._enipSession = session;
-    this.emit('session');
-  }
-
-  /**
-   * Send unconnected message
-   * @param {object} enipRemoteMsg object describing a enip remote service
-   * @param {function} callback handler function
-   */
-  public sendUnconnectedMsg(enipRemoteMsg:EnipRemoteMessage,
-      callback:(error:Error|null, data?:object|undefined)=>void):void {
-    if (!this._enipSession) {
-      throw new Error('No session open for enip communication.');
-    }
-
-    const requestMsg = enipRemoteMsg.request;
-    const responseMsg = enipRemoteMsg.response ?
-        enipRemoteMsg.response :
-        undefined;
-
+ * Build an UnConnected EnipMessage
+ * @param {EnipRemoteMessageReq} requestMsg object describing the request to send
+ * @return {EnipMessage} an EnipMessage instance
+ */
+  private buildUCEnipMessage(requestMsg:EnipRemoteMessageReq):EnipMessage {
     // define epath
     const epath = buildLogicalEpath(requestMsg.epath);
 
-    // encode data
-    try {
-      const dataBuffer = requestMsg.data ?
-          this._dataHandler.encode(requestMsg.data):
-          undefined;
+    const dataBuffer = requestMsg.data ?
+    this._dataHandler.encode(requestMsg.data):
+    undefined;
 
-      const reqMessage = new cip.message.Request(
-          cip.message.Service[<CipService>requestMsg.service],
-          epath,
-          dataBuffer,
-      );
+    const reqMessage = new cip.message.Request(
+        cip.message.Service[<CipService>requestMsg.service],
+        epath,
+        dataBuffer,
+    );
 
-      const addressItem = enip.data.item.buildNullAddressItem();
-      const dataItem = enip.data.item.buildUnconnectedDataItem(reqMessage);
-      const cpf = new enip.data.CPF(addressItem, dataItem);
+    const addressItem = enip.data.item.buildNullAddressItem();
+    const dataItem = enip.data.item.buildUnconnectedDataItem(reqMessage);
+    const cpf = new enip.data.CPF(addressItem, dataItem);
 
-      const enipData = new enip.data.SendRR(cpf);
+    const enipData = new enip.data.SendRR(cpf);
+    // eslint-disable-next-line max-len
+    const enipHeader = enip.header.buildSendRR(
+        <number> this._enipSession,
+        enipData.length);
+
+    const enipMessage = new EnipMessage(enipHeader, enipData);
+
+    return enipMessage;
+  }
+
+  /**
+   * send enip unconnected message
+   * @param {string} requestId id of unconnected request
+   * @param {EnipRemoteMessage} enipRemoteMsg object describing the message to send
+   */
+  public sendUnconnectedMsg(requestId:string,
+      enipRemoteMsg:EnipRemoteMessage) : void {
+    if (!this._enipSession) {
       // eslint-disable-next-line max-len
-      const enipHeader = enip.header.buildSendRR(this._enipSession, enipData.length);
-      const enipMessage = new EnipMessage(enipHeader, enipData);
-
-      this.on('SendRRData', (enipMsg:EnipRemoteRespMsg)=> {
-      // LOG:
-        console.log('SendRRData response');
-        console.log(JSON.stringify(enipMsg));
-
-        if (enipMsg.status.state) {
-        // if enip status => success
-        // get the message body
-          const body = <enip.data.SendRRBody>enipMsg.body;
-          let data:HandledData|undefined;
-
-          if (body.messageStatus && body.messageStatus == 'Success') {
-            if (responseMsg) {
-              const type = responseMsg.items ?
-            responseMsg.items.type :
-            responseMsg.type;
-
-              data = body.data ?
-            this._dataHandler.parse(body.data, type):
+      this.emit('failure', new Error('No session open for enip communication.'));
+    } else {
+      const requestMsg = enipRemoteMsg.request;
+      const responseMsg = enipRemoteMsg.response ?
+            enipRemoteMsg.response :
             undefined;
-            } else {
-              data=undefined;
-            }
 
-            callback(null, data);
-          } else {
-          // eslint-disable-next-line max-len
-            callback(new TargetProtocolError('ERR_PROTOCOL_CIP', `ERROR: Error type <${body.messageStatus}> reply by target.`));
-          }
-        } else {
-        // eslint-disable-next-line max-len
-          callback(new TargetProtocolError('ERR_PROTOCOL_ENIP', 'ERROR: ENIP message transmission failure'));
-        }
-      });
+      let responseType:string|undefined;
+      if (responseMsg) {
+        responseType = responseMsg.items ?
+        responseMsg.items.type :
+        responseMsg.type;
+      } else {
+        responseType = undefined;
+      }
+      try {
+        // build the enip message
+        const enipMessage = this.buildUCEnipMessage(requestMsg);
 
-      this._tcpClient.write(enipMessage.encode());
-    } catch (error) {
-      callback(<ProxyError>error);
+        // store <requestId> : <responseType> in cache
+        this._cache.set(requestId,
+            {responseType: responseType,
+              usageType: 'standard'});
+
+        // send message using TcpClient instance
+        this._tcpClient.send(enipMessage.encode(), requestId);
+      } catch (error) {
+        this.emit('failure', <ProxyError>error);
+      }
     }
   }
+
+  /**
+   * initialize a tracker for a remote service
+   * @param {string} requestId tracker request id
+   * @param {EnipRemoteMessage} enipRemoteMsg object describing the message to send
+   * @param {number} trackInterval time interval between each tracking request
+   */
+  public initTracker(requestId:string, enipRemoteMsg:EnipRemoteMessage,
+      trackInterval: number) {
+    // TODO implement new tcp write on inittracker
+
+    if (!this._enipSession) {
+      // eslint-disable-next-line max-len
+      this.emit('failure', new Error('No session open for enip communication.'));
+    } else {
+      const requestMsg = enipRemoteMsg.request;
+      const responseMsg = <EnipRemoteMessageRes>enipRemoteMsg.response;
+
+      const responseType = responseMsg.items ?
+                           responseMsg.items.type :
+                           responseMsg.type;
+      try {
+        const enipMessage = this.buildUCEnipMessage(requestMsg);
+
+        this._cache.set(requestId, {
+          responseType: responseType,
+          usageType: 'tracker',
+          timer: 'running'});
+
+        const timer = setInterval(
+            (self:EnipClient, enipBuffer:Buffer)=>{
+              switch ((<CachePacket>self._cache.get(requestId)).timer) {
+                case 'running':
+                  self._tcpClient.send(enipBuffer, requestId);
+                  break;
+                case 'clear':
+                  clearInterval(timer);
+                  this._cache.del(requestId);
+                  break;
+              }
+            },
+            trackInterval,
+            this,
+            enipMessage.encode(),
+        );
+        timer.unref();
+
+
+        timer.ref();
+      } catch (error) {
+        this.emit('failure', error);
+      }
+    }
+  }
+
+  /**
+   * clear a tracker
+   * @param {string} requestId tracker request id
+   */
+  public clearTracker(requestId:string) {
+    // change the cache packet timer status
+    this._cache.set(requestId, {timer: 'clear'});
+    this.removeAllListeners(requestId);
+  }
 }
+
 
 /**
  * build a logical epath object
@@ -258,17 +312,4 @@ function buildLogicalEpath(epathMsg:CipEpath) : cip.EPath {
   return new cip.EPath(pathArray);
 }
 
-/**
- * build a response message object from EnipMessage instance
- * @param {EnipMessage} enipMsg EnipMessade instance
- * @return {EnipRemoteRespMsg} object describing the response
- */
-function buildRemoteRespMsg(enipMsg:EnipMessage) : EnipRemoteRespMsg {
-  return {
-    session: enipMsg.session,
-    status: enipMsg.status,
-    command: enipMsg.command,
-    body: <object>enipMsg.body,
-  };
-}
 

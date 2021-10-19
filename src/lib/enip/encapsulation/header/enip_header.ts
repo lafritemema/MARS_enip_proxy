@@ -3,8 +3,9 @@ import {BufferIterator} from 'utils';
 import {EnipCommand} from './enip_command';
 import {EnipStatus, ENIPStatusMsg, EnipStatusObject} from './enip_status';
 
+type commands = keyof typeof EnipCommand;
 export interface EnipHeaderJSONObject extends Object{
-  command:string,
+  command:commands,
   dataLength:number,
   session:string,
   status:string,
@@ -100,8 +101,8 @@ encapsulation command. length of 8 bytes
    * Get EnipHeader command in string
    * @return {string} command in string format
    */
-  public getCommand():string {
-    return EnipCommand[this._command];
+  public getCommand():commands {
+    return <commands>EnipCommand[this._command];
   }
 
   /**
@@ -173,7 +174,7 @@ encapsulation command. length of 8 bytes
    */
   public toJSON():EnipHeaderJSONObject {
     return {
-      command: EnipCommand[this._command],
+      command: <commands>EnipCommand[this._command],
       dataLength: this._dataLength,
       session: this._session != 0 ? this._session.toString(16) : '00000000',
       status: EnipStatus[this._status],
