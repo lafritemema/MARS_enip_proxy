@@ -130,7 +130,7 @@
                       "optional": false
                     }
                   ],
-                  "validationSchema": "traceNumRegBody"
+                  "validationSchema": "subscribeNumRegBody"
                 },
                 "transformations": [
                   "numRegTypeConversion"
@@ -1520,9 +1520,9 @@
           ]
         }
       },
-      "traceNumRegBody": {
+      "subscribeNumRegBody": {
         "schema": {
-          "$id": "traceNumRegBody",
+          "$id": "subscribeNumRegBody",
           "type": "object",
           "properties": {
             "setting": {
