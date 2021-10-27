@@ -1665,15 +1665,15 @@
             "type": {
               "type": "string",
               "enum": [
-                "JOINT",
-                "CARTESIAN"
+                "jnt",
+                "crt"
               ]
             }
           },
           "if": {
             "properties": {
               "type": {
-                "const": "CARTESIAN"
+                "const": "crt"
               }
             }
           },
@@ -1762,7 +1762,7 @@
             "interval": {
               "type": "number",
               "minimum": 500,
-              "maximum": 5000
+              "maximum": 20000
             },
             "id": {
               "type": "string"

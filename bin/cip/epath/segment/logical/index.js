@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.extractLogicalFormat = exports.extractLogicalType = exports.getLogicalProcessor = exports.Type = exports.Format = void 0;
+const logical_segment_1 = require("./logical_segment");
+const logical_format_1 = require("./logical_format");
+Object.defineProperty(exports, "Format", { enumerable: true, get: function () { return logical_format_1.LogicalFormat; } });
+Object.defineProperty(exports, "extractLogicalFormat", { enumerable: true, get: function () { return logical_format_1.extractLogicalFormat; } });
+Object.defineProperty(exports, "getLogicalProcessor", { enumerable: true, get: function () { return logical_format_1.getLogicalProcessor; } });
+const logical_type_1 = require("./logical_type");
+Object.defineProperty(exports, "Type", { enumerable: true, get: function () { return logical_type_1.LogicalType; } });
+Object.defineProperty(exports, "extractLogicalType", { enumerable: true, get: function () { return logical_type_1.extractLogicalType; } });
+exports.default = logical_segment_1.LogicalSegment;

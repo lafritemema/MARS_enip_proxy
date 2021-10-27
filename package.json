@@ -5,9 +5,9 @@
   "main": "./bin/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ts_http": "node -r ts-node/register -r tsconfig-paths/register ./src/lib/proxy/http/http_server.ts",
+    "ts-enip-proxy": "node -r ts-node/register -r tsconfig-paths/register ./src/lib/proxy/http/http_server.ts",
     "test_code": "node ./bin/code_test.js",
-    "serve": "node ./bin/proxy/http/http_server.js",
+    "enip-proxy": "node ./bin/proxy/http/http_server.js",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src/lib -o ./bin"
   },
   "repository": {
@@ -22,6 +22,7 @@
   "license": "ISC",
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
+    "@types/amqplib": "^0.8.2",
     "@types/body-parser": "^1.19.1",
     "@types/events": "^3.0.0",
     "@types/express": "^4.17.13",
@@ -43,6 +44,7 @@
   "dependencies": {
     "@types/config": "0.0.39",
     "ajv": "^8.6.3",
+    "amqplib": "^0.8.0",
     "body-parser": "^1.19.0",
     "config": "^3.3.6",
     "express": "^4.17.1",

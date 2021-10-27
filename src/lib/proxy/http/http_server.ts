@@ -12,6 +12,8 @@ import {FanucDataHandler} from '../custom/fanuc_data_handler';
 import {ProxyError} from '../proxy_error';
 import {EventEmitter} from 'events';
 import {randomBytes} from 'crypto';
+import * as amqp from 'amqplib';
+
 
 interface TcpError extends Error {
   errno:number,
@@ -30,13 +32,48 @@ const ServerMessage:Record<number, string>= {
 const enipConnTimeout = 2000;
 let enipConnectAttempt = 0;
 const maxEnipConnectAttempt = 5;
+// object to store server status
+const serverStatus = {
+  routerBuilded: false,
+  enipClientConnection: false,
+  enipClientSession: false,
+  rabbitMQConfiguration: false,
+};
 
+// instanciate a EventEmitter to manage server status
+const serverStatusManager = new EventEmitter();
+
+// init rabbit mq message exchange
+const rabbitmq = {
+  url: 'amqp://localhost',
+};
+const rabbitmqTopics = {
+  alert: 'proxy.alert',
+};
+const stream = amqp.connect(rabbitmq.url);
+const exchange = 'sequencer';
+
+stream
+    .then((connection: amqp.Connection)=> {
+      return connection.createChannel();
+    })
+    .then((channel: amqp.Channel)=> {
+      channel.assertExchange(exchange, 'topic', {
+        durable: false,
+      });
+
+      serverStatusManager.on(rabbitmqTopics.alert, (msg)=>{
+        channel.publish(exchange, rabbitmqTopics.alert, Buffer.from('test'));
+      });
+
+      serverStatus.rabbitMQConfiguration = true;
+      serverStatusManager.emit('startServer');
+    });
 // instanciate a datahandler to transform data
 // according to the targeted device
 const dataHandler = new FanucDataHandler();
 
-// instanciate a EventEmitter to manage server status
-const serverStatusManager = new EventEmitter();
+
 // event handler for log
 serverStatusManager.on('log', (logger:string, message:string)=>{
   switch (logger) {
@@ -56,12 +93,6 @@ process.on('exit', (code:number)=>{
   serverStatusManager.emit('log', 'CONSOLE', ServerMessage[code]);
 });
 
-// object to store server status
-const serverStatus = {
-  routerBuilded: false,
-  enipClientConnection: false,
-  enipClientSession: false,
-};
 
 // define an enipclient to communicate with target
 let enipClient:EnipClient;
@@ -85,6 +116,7 @@ server.all('*', (request:Request,
     api: request.baseUrl+request.path,
     query: request.query,
     method: request.method,
+    body: request.body,
   };
 
   // LOG:
@@ -155,7 +187,8 @@ enipClient.on('error', (error:TcpError)=>{
 serverStatusManager.on('startServer', ()=>{
   if (serverStatus.enipClientConnection &&
       serverStatus.enipClientSession &&
-      serverStatus.routerBuilded) {
+      serverStatus.routerBuilded &&
+      serverStatus.rabbitMQConfiguration) {
     server.listen(port, ()=>{
       serverStatusManager.emit('log', 'CONSOLE', 'server listen on port '+port);
     });
@@ -204,7 +237,7 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
             switch (trackerSettings.tracker) {
               case 'alert':
                 if (isEqual(<object>trackerSettings.value, enipPacket.data)) {
-                  console.log('alert' + enipPacket);
+                  serverStatusManager.emit(rabbitmqTopics.alert, 'test');
                   enipClient.clearTracker(treqid);
                 }
                 break;
@@ -232,9 +265,9 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
       // if proxy error, get JSON representation and send it to the client
       const proxyError = <ProxyError>error;
       const errorDesc = proxyError.toJSON();
-
+      console.log('Error on request :' + JSON.stringify(errorDesc));
       response.status(proxyError.httpCode)
-          .send({status: 'FAIL', error: errorDesc});
+          .send({status: 'ERROR', error: errorDesc});
     } else {
       // if not a ProxyError, raise it
       throw error;

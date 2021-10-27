@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.header = exports.data = exports.Data = exports.Header = exports.Status = exports.Command = void 0;
+const enip_message_1 = require("./enip_message");
+const encapsulation_1 = require("./encapsulation");
+Object.defineProperty(exports, "header", { enumerable: true, get: function () { return encapsulation_1.enipheader; } });
+Object.defineProperty(exports, "Data", { enumerable: true, get: function () { return encapsulation_1.EnipData; } });
+Object.defineProperty(exports, "data", { enumerable: true, get: function () { return encapsulation_1.enipdata; } });
+Object.defineProperty(exports, "Header", { enumerable: true, get: function () { return encapsulation_1.EnipHeader; } });
+exports.Command = encapsulation_1.enipheader.Command;
+exports.Status = encapsulation_1.enipheader.Status;
+exports.default = enip_message_1.EnipMessage;
