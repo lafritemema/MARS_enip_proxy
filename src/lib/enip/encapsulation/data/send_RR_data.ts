@@ -76,8 +76,11 @@ export class SendRRData implements EnipData {
       service: (<cip.CIPMessage> this._enipCpf.dataItem.message).getService(),
     };
 
-    if (this._enipCpf.dataItem.message?.data) {
-      body.data = this._enipCpf.dataItem.message?.data;
+    // if a message and the message data buffer is not empty
+    if (this._enipCpf.dataItem.message &&
+      this._enipCpf.dataItem.message.data.length > 0) {
+      // get the message data
+      body.data = this._enipCpf.dataItem.message.data;
     }
 
     if ( body.messageType == 'RESPONSE') {

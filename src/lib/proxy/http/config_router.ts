@@ -253,12 +253,13 @@ function buildRemoteMessage(
     // get data from query and body
     const data = request.query;
     if (request.body && request.body.data) {
-      data.value = request.body;
+      data.value = request.body.data;
     }
-
+    // LOG
+    console.log(data);
     // build a RemoteMessage with template and data
     const remoteMessage = <RemoteMessage><unknown>template(data);
-
+    console.log(JSON.stringify(remoteMessage));
     // store the RemoteMessage in the response.locals
     response.locals.remoteMessage = remoteMessage;
     // next middleware

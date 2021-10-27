@@ -71,7 +71,7 @@ export class FanucDataHandler extends DataHandler {
    */
   public parse(dataBuffer:Buffer, type:string):HandledData {
     const hdata:HandledData={};
-
+    console.log(type);
     switch (type) {
       case 'INT':
       case 'REAL':

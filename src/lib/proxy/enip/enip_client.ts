@@ -97,6 +97,7 @@ export class EnipClient extends EventEmitter {
           switch (enipMsg.command) {
             case 'SendRRData':
               const enipbody = <enip.data.SendRRBody> enipMsg.body;
+              console.log(enipbody.data);
               data = enipbody.data ?
                 this._dataHandler.parse(enipbody.data, cpacket.responseType):
                 undefined;
