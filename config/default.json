@@ -4,8 +4,13 @@
     "ipv4":"127.0.0.2",
     "port":44818
   },
-  "http":{
+  "httpServer":{
     "apiRegister":"./resources/fanuc_api_reg.json",
+    "host":"127.0.0.1",
     "port":8000
+  },
+  "rabbitMq":{
+    "url": "amqp://localhost",
+    "exchange": "mars"
   }
 }

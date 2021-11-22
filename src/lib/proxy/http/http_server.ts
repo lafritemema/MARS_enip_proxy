@@ -44,31 +44,10 @@ const serverStatus = {
 const serverStatusManager = new EventEmitter();
 
 // init rabbit mq message exchange
-const rabbitmq = {
-  url: 'amqp://localhost',
-};
-const rabbitmqTopics = {
+const topics = {
   alert: 'proxy.alert',
 };
-const stream = amqp.connect(rabbitmq.url);
-const exchange = 'sequencer';
 
-stream
-    .then((connection: amqp.Connection)=> {
-      return connection.createChannel();
-    })
-    .then((channel: amqp.Channel)=> {
-      channel.assertExchange(exchange, 'topic', {
-        durable: false,
-      });
-
-      serverStatusManager.on(rabbitmqTopics.alert, (msg)=>{
-        channel.publish(exchange, rabbitmqTopics.alert, Buffer.from('test'));
-      });
-
-      serverStatus.rabbitMQConfiguration = true;
-      serverStatusManager.emit('startServer');
-    });
 // instanciate a datahandler to transform data
 // according to the targeted device
 const dataHandler = new FanucDataHandler();
@@ -130,13 +109,17 @@ let port:number;
 let enipDeviceIp:string;
 let enipDevicePort:number;
 let apiConfigPath:string;
+let rabbitMqUrl:string;
+let exchange:string;
 
 try {
   // get the configuration from the config module
-  port = config.get('http.port');
+  port = config.get('httpServer.port');
   enipDeviceIp = <string>config.get('remoteServer.ipv4');
   enipDevicePort = <number>config.get('remoteServer.port');
-  apiConfigPath = config.get('http.apiRegister');
+  apiConfigPath = config.get('httpServer.apiRegister');
+  rabbitMqUrl = config.get('rabbitMq.url');
+  exchange = config.get('rabbitMq.exchange');
 
   // init and connect the enip client
   // it raise connect and session event when it ready
@@ -151,6 +134,37 @@ try {
   serverStatusManager.emit('log', 'CONSOLE', (<Error>error).message);
   process.exit(0x2e);
 }
+
+const stream = amqp.connect(rabbitMqUrl);
+
+stream
+    .then((connection: amqp.Connection)=> {
+      return connection.createChannel();
+    })
+    .then((channel: amqp.Channel)=> {
+      channel.assertExchange(exchange, 'topic', {
+        durable: false,
+      });
+
+      serverStatusManager.on(topics.alert, (msg)=>{
+        const alertMsg = {
+          status: 'SUCCESS',
+        };
+
+        const alertMsgBuffer = Buffer.from(JSON.stringify(alertMsg));
+
+        channel.publish(
+            exchange,
+            topics.alert,
+            alertMsgBuffer);
+      });
+
+      serverStatus.rabbitMQConfiguration = true;
+      serverStatusManager.emit('startServer');
+    });
+
+
+
 
 // in case of success
 // define this middleware to get msg from custom router and send enip message
@@ -237,7 +251,13 @@ serverStatusManager.on('routerBuilded', (router:Router)=>{
             switch (trackerSettings.tracker) {
               case 'alert':
                 if (isEqual(<object>trackerSettings.value, enipPacket.data)) {
-                  serverStatusManager.emit(rabbitmqTopics.alert, 'test');
+                  serverStatusManager.emit(
+                      topics.alert,
+                      {
+                        type: 'TRACKER',
+                        status: 'SUCCESS',
+                      },
+                  );
                   enipClient.clearTracker(treqid);
                 }
                 break;
