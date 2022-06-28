@@ -11,6 +11,9 @@ import {EnipRemoteMessage,
 import {ProxyError, TargetProtocolError} from '../proxy_error';
 import NodeCache from 'node-cache';
 import {TcpClient} from './tcp_client';
+import Logger from '@common/logger';
+import { resolve } from 'path';
+import { ServerException, ServerExceptionType } from 'src/lib/server/exceptions';
 
 interface TcpError extends Error {
   errno:number,
@@ -31,6 +34,8 @@ export interface EnipDataPacket {
   session: number,
   data: HandledData}
 
+const MAX_CONNECT_ATTEMPT = 3;
+const CONNECT_TIMEOUT = 2000;
 
 type LogicalFormatKey = keyof typeof cip.epath.segment.logical.Format
 type CipService = keyof typeof cip.message.Service
@@ -45,6 +50,8 @@ export class EnipClient extends EventEmitter {
   private _targetIp:string;
   private _targetPort:number;
   private _cache:NodeCache = new NodeCache();
+  private _connectAttempt:number;
+  private _logger:Logger;
   /**
    * EnipClient instance constructor
    * @param {string} ip host to connect
@@ -57,20 +64,44 @@ export class EnipClient extends EventEmitter {
     this._targetPort=port;
     this._enipSession=null;
     this._dataHandler=dataHandler;
+    this._connectAttempt = 0;
+    this._logger = new Logger('ENIPCLIENT');
     this.configureHandler();
+  }
+
+  /**
+   * function to create connection and open session between
+   * enip client and enip device
+   * @return {Promise<number>} the session id
+   */
+  public run():Promise<number> {
+    return new Promise((resolve, reject)=>{
+      this.on('session', (data:EnipDataPacket)=>{
+        this._logger.success(`open session with device ${this._targetIp}`);
+        this._enipSession = data.session;
+        resolve(data.session);
+      });
+      this.on('error', (error:ServerException)=> {
+        reject(error);
+      });
+      this.connect();
+    });
   }
 
   /**
    * tcpIp connection
    */
   public connect() {
+    this._connectAttempt +=1;
+    // eslint-disable-next-line max-len
+    this._logger.try(`connection to enip devices ${this._targetIp}`);
     this._tcpClient.connect(this._targetPort, this._targetIp);
   }
 
   /**
    * register a session
    */
-  public registerSession():void {
+  private registerSession():void {
     const enipHeader = enip.header.buildRegSession();
     const enipData = new enip.data.RegisterSession();
     const enipMessage = new EnipMessage(enipHeader, enipData);
@@ -123,8 +154,9 @@ export class EnipClient extends EventEmitter {
 
     // handler for socket connect event
     this._tcpClient.on('connect', ()=>{
+      this._logger.success(`connection to enip devices ${this._targetIp}`);
+      this._logger.try(`open session with device ${this._targetIp}`);
       this.registerSession();
-      this.emit('connect');
     });
     // handler for socket end event
     this._tcpClient.on('end', ()=>{
@@ -132,12 +164,36 @@ export class EnipClient extends EventEmitter {
     });
     // handler for error socket event
     this._tcpClient.on('error', (error:TcpError)=>{
-      this.emit('error', error);
-    });
+      // handle tcp error
+      // if connect error
+      switch (error.syscall) {
+        case 'connect':
+          if (this._connectAttempt < MAX_CONNECT_ATTEMPT) {
+            // try to reconnect if no max connect attempt reached
+            // eslint-disable-next-line max-len
+            this._logger.failure(`connection to enip devices ${this._targetIp}(${this._connectAttempt}/${MAX_CONNECT_ATTEMPT})`);
+            setTimeout(this.connect.bind(this), CONNECT_TIMEOUT);
+          } else {
+            // eslint-disable-next-line max-len
+            this._logger.failure(`connection to enip devices ${this._targetIp}(${this._connectAttempt}/${MAX_CONNECT_ATTEMPT})`);
+            const serror = new ServerException(['SERVER', 'ENIP',
+              'TCP', 'CONNECT'],
+            ServerExceptionType.CONNECTION_ERROR,
+            error.message,
+            500);
 
-    // handler for custom enipSession event
-    this.on('session', (data:EnipDataPacket)=>{
-      this._enipSession = data.session;
+            this.emit('error', serror);
+          }
+          break;
+        default:
+          console.log(error);
+          const serror = new ServerException(['SERVER', 'ENIP',
+            'TCP', 'CONNECT'],
+          ServerExceptionType.CONNECTION_ERROR,
+          error.message,
+          500);
+          this.emit('error', serror);
+      }
     });
   }
 
