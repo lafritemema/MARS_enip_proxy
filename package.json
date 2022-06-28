@@ -5,7 +5,7 @@
   "main": "./bin/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ts-enip-proxy": "node -r ts-node/register -r tsconfig-paths/register ./src/lib/proxy/http/http_server.ts",
+    "ts-enip-proxy": "ts-node -r tsconfig-paths/register ./src/lib/enip_proxy.ts",
     "test_code": "node ./bin/code_test.js",
     "enip-proxy": "node ./bin/proxy/http/http_server.js",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src/lib -o ./bin"
@@ -46,9 +46,11 @@
     "ajv": "^8.6.3",
     "amqplib": "^0.8.0",
     "body-parser": "^1.19.0",
+    "chalk": "^4.1.2",
     "config": "^3.3.6",
     "express": "^4.17.1",
     "json-templates": "^4.1.0",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "yaml": "^2.1.1"
   }
 }
