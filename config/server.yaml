@@ -1,0 +1,15 @@
+enip:
+  activate: true
+  host: 127.0.0.2
+  port: 44818
+http:
+  activate: true
+  host: 127.0.0.1
+  port: 8000
+amqp:
+  activate: true
+  host: debianvm
+  port: 5672
+  exchange: 
+    name: 'mars'
+    type: 'topic'
