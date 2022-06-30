@@ -1,6 +1,6 @@
 enip:
   activate: true
-  host: 127.0.0.2
+  host: 127.0.0.5
   port: 44818
 http:
   activate: true

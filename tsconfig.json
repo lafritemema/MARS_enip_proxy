@@ -16,7 +16,8 @@
       "paths": {
         "cip":["src/lib/cip", "src/lib/cip/*"],
         "enip":["src/lib/enip", "src/lib/enip/*"],
-        "utils": ["src/lib/utils"]
+        "utils": ["src/lib/utils"],
+        "@common/*": ["src/lib/common/*"]
         }
     },
     "include": ["src/lib/**/*"],

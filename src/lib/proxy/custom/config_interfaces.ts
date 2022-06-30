@@ -134,7 +134,13 @@ export interface TypedSettings {
 
 export interface TrackerSettings extends TypedSettings {
   interval:number,
-  value?: object,
   tracker: 'report'|'alert',
-  id: string
+  uid: string
+}
+
+export interface AlertTrackerSettings extends TrackerSettings {
+  expected: {
+    relation:'eq'|'neq',
+    data:object
+  }
 }

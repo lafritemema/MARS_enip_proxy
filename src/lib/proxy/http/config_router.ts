@@ -2,14 +2,12 @@ import express, {Request, Response, Router} from 'express';
 import Ajv, {ErrorObject} from 'ajv';
 import templateParser from 'json-templates';
 
-import {RouterConfiguration,
-  APIPath,
-  RemoteServices,
-  Transformations,
+import {
   HTTPMethod,
   RemoteMessage} from '../custom/config_interfaces';
 import {RequestUrlError,
   RequestValidationError} from '../proxy_error';
+import {APIRegister, RegRemoteService, RegUrn, Transformation} from '../interfaces';
 
 
 // define a middleware type
@@ -19,10 +17,10 @@ type ExpressMiddleware = (request:Request,
 
 /**
    * buid a router according to the standard configuration
-   * @param {RouterConfiguration} routerConfig json configuration file
+   * @param {APIRegister} apiRegister json configuration file
    * @return {Router} express router
    */
-export function buildRouterFromConfig(routerConfig:RouterConfiguration):Router {
+export function buildRouterFromConfig(apiRegister:APIRegister):Router {
   // express router instance
   // eslint-disable-next-line new-cap
   const router = express.Router();
@@ -30,19 +28,24 @@ export function buildRouterFromConfig(routerConfig:RouterConfiguration):Router {
   // Ajv instance for validation
   const validator = new Ajv();
 
-  // get the configuration
+  /* get the configuration
   const httpApi = routerConfig.httpAPI.baseUrls;
   const remoteServices = routerConfig.remoteServices;
   const validationSchemas = routerConfig.validationSchemas.schemas;
   const transformations = routerConfig.transformations;
+  */
+  const {paths,
+    remoteServices,
+    validationSchemas,
+    transformations} = apiRegister;
 
   // inject all shemas from configuration to validator
   for (const vs of Object.keys(validationSchemas)) {
     validator.addSchema(validationSchemas[vs].schema);
   }
 
-  // build the routes from api configuration
-  for (const url of Object.keys(httpApi)) {
+  /* build the routes from api configuration
+  for (const url of Object.keys(paths)) {
     for (const path of Object.keys(httpApi[url].paths)) {
       // build a path router with buildPathRouter function
       const pathRouter = buildPathRouter(path,
@@ -53,6 +56,23 @@ export function buildRouterFromConfig(routerConfig:RouterConfiguration):Router {
 
       // add it to global router for the api url
       router.use(url, pathRouter);
+    }
+  }
+  */
+  // for each paths
+  for (const pathkey of Object.keys(paths)) {
+    // for each urn in path
+    for (const urnkey of Object.keys(paths[pathkey].urns)) {
+      // build a path router using buildPathRouter function
+      const pathRouter = buildPathRouter(
+          urnkey, // the urn key
+          paths[pathkey].urns[urnkey], // the urn element
+          validator, // the validator object
+          remoteServices, // the remote service register
+          transformations, // the transformation register
+      );
+      // associate the router to the pathkey
+      router.use(pathkey, pathRouter);
     }
   }
 
@@ -73,27 +93,28 @@ export function buildRouterFromConfig(routerConfig:RouterConfiguration):Router {
 /**
  * Build an express router for a path
  * with validation and processing middleware
- * @param {string} pathUrl router path url
- * @param {APIPath} paths object containing informations to build route
+ * @param {string} urnkey the urn key
+ * @param {RegUrn} urn object containing informations to build route
  * @param {Avj} validator jsonschema validation object
- * @param {RemoteServices} remoteServices object describing the target
+ * @param {Record<string, RegRemoteService>} remoteServices object describing the target
  * remote service associated to the route method
- * @param {Transformations} transformations object describing additionnal middleware functions to process
+ * @param {Record<string, Transformation>} transformations
+ * object describing additionnal middleware functions to process
  * @return {Router} the express router for path
  */
-function buildPathRouter(pathUrl:string,
-    paths:APIPath,
+function buildPathRouter(
+    urnkey:string,
+    urn:RegUrn,
     validator:Ajv,
-    remoteServices:RemoteServices,
-    transformations:Record<string, Transformations>):Router {
+    remoteServices:Record<string, RegRemoteService>,
+    transformations:Record<string, Transformation>):Router {
   // instanciate the path router and define a route
   // eslint-disable-next-line new-cap
   const router = express.Router();
-  const route = router.route(pathUrl);
-
+  const route = router.route(urnkey);
 
   // create middlewares for each method in the path configuration
-  const methods = paths.methods;
+  const methods = urn.methods;
   for (const m of Object.keys(methods)) {
     // array for middlewares
     const middlewares:ExpressMiddleware[] = [];
@@ -106,7 +127,7 @@ function buildPathRouter(pathUrl:string,
       // TODO : implement a validation schema for configuration
       if (qValSchema == undefined) {
         throw new Error(`ERROR: Missing  query parameter validation schema \
-for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
+for url ${methods[<HTTPMethod>m].uri} method ${m}`);
       } else {
         middlewares.push(validation(validator, qValSchema, 'query'));
       }
@@ -120,7 +141,7 @@ for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
       // TODO : implement a validation schema for configuration
       if (bValSchema == undefined) {
         throw new Error(`ERROR: missing body parameter validation schema \
-for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
+for url ${methods[<HTTPMethod>m].uri} method ${m}`);
       } else {
         middlewares.push(validation(validator, bValSchema, 'body'));
       }
@@ -144,13 +165,13 @@ for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
     // TODO : implement a validation schema for configuration
     if (remoteObj == undefined) {
       throw new Error(`ERROR: missing target remote service \
-for url ${methods[<HTTPMethod>m].globalUrl} method ${m}`);
+for url ${methods[<HTTPMethod>m].uri} method ${m}`);
     } else {
       // eslint-disable-next-line max-len
 
       const remote = remoteObj.service;
       // eslint-disable-next-line max-len
-      const targetRemoteTemplate = remoteServices.services[<string>remote];
+      const targetRemoteTemplate = remoteServices[<string>remote];
       middlewares.push(buildRemoteMessage(targetRemoteTemplate));
     }
 

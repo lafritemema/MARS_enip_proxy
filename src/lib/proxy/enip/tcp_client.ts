@@ -47,6 +47,7 @@ export class TcpClient extends Socket {
     // write it on the socket
     this.write(this._currentMsg.data);
   }
+
   /**
   * function to handle socket data event
   * @param {Buffer} data data send by server

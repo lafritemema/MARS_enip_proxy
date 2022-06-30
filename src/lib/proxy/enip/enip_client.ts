@@ -12,8 +12,7 @@ import {ProxyError, TargetProtocolError} from '../proxy_error';
 import NodeCache from 'node-cache';
 import {TcpClient} from './tcp_client';
 import Logger from '@common/logger';
-import { resolve } from 'path';
-import { ServerException, ServerExceptionType } from 'src/lib/server/exceptions';
+import {ServerException, ServerExceptionType} from 'src/lib/server/exceptions';
 
 interface TcpError extends Error {
   errno:number,

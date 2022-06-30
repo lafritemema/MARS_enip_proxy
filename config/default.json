@@ -10,7 +10,7 @@
     "port":8000
   },
   "rabbitMq":{
-    "url": "amqp://localhost",
+    "url": "amqp://debianvm",
     "exchange": "mars"
   }
 }
