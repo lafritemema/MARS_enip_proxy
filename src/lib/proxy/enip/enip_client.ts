@@ -42,7 +42,7 @@ type CipService = keyof typeof cip.message.Service
  * Class describing an enip client
  */
 export class EnipClient extends EventEmitter {
-  private _tcpClient:TcpClient = new TcpClient();
+  private _tcpClient:TcpClient = new TcpClient(5000);
   // private _udpClient:Socket=udp.createSocket('udp4');
   private _dataHandler:DataHandler;
   private _enipSession:number|null;
@@ -120,34 +120,37 @@ export class EnipClient extends EventEmitter {
       const enipMsg = EnipMessage.parse(tcpData);
       let data:HandledData|undefined;
 
-      // if enipMessage status state (enip header status) = true => success
-      if (enipMsg.isSuccess) {
-        // if there is a body in EnipMessage => cip message
-        if (enipMsg.hasBody) {
-          switch (enipMsg.command) {
-            case 'SendRRData':
-              const enipbody = <enip.data.SendRRBody> enipMsg.body;
-              console.log(enipbody.data);
-              data = enipbody.data ?
-                this._dataHandler.parse(enipbody.data, cpacket.responseType):
-                undefined;
-              break;
-            case 'ListIdentity':
-              data = <enip.data.ListIdentityBody>enipMsg.body;
-              break;
+      // if requestId is still registered in the cache
+      if (cpacket) {
+        // if enipMessage status state (enip header status) = true => success
+        if (enipMsg.isSuccess) {
+          // if there is a body in EnipMessage => cip message
+          if (enipMsg.hasBody) {
+            switch (enipMsg.command) {
+              case 'SendRRData':
+                const enipbody = <enip.data.SendRRBody> enipMsg.body;
+                console.log(enipbody.data);
+                data = enipbody.data ?
+                  this._dataHandler.parse(enipbody.data, cpacket.responseType):
+                  undefined;
+                break;
+              case 'ListIdentity':
+                data = <enip.data.ListIdentityBody>enipMsg.body;
+                break;
+            }
           }
+          this.emit(requestId,
+              {command: enipMsg.command,
+                session: enipMsg.session,
+                data: data});
+        } else {
+          // default on enip request
+          // eslint-disable-next-line max-len
+          this.emit('failure', new TargetProtocolError('ERR_PROTOCOL_ENIP', 'ERROR: ENIP message transmission failure'));
         }
-        this.emit(requestId,
-            {command: enipMsg.command,
-              session: enipMsg.session,
-              data: data});
-      } else {
-        // default on enip request
-        // eslint-disable-next-line max-len
-        this.emit('failure', new TargetProtocolError('ERR_PROTOCOL_ENIP', 'ERROR: ENIP message transmission failure'));
-      }
-      if (cpacket.usageType == 'standard') {
-        this._cache.del(requestId);
+        if (cpacket.usageType == 'standard') {
+          this._cache.del(requestId);
+        }
       }
     });
 
@@ -157,10 +160,12 @@ export class EnipClient extends EventEmitter {
       this._logger.try(`open session with device ${this._targetIp}`);
       this.registerSession();
     });
+
     // handler for socket end event
     this._tcpClient.on('end', ()=>{
       this.emit('end');
     });
+
     // handler for error socket event
     this._tcpClient.on('error', (error:TcpError)=>{
       // handle tcp error
@@ -193,6 +198,15 @@ export class EnipClient extends EventEmitter {
           500);
           this.emit('error', serror);
       }
+    });
+
+    this._tcpClient.on('tcptimeout', (requestId:string)=>{
+      const serror = new ServerException(['SERVER', 'ENIP',
+        'TCP', 'TIMEOUT'],
+      ServerExceptionType.REQUEST_TIMEOUT,
+      `timeout delay for request ${requestId}`,
+      500);
+      this.emit('error', serror);
     });
   }
 

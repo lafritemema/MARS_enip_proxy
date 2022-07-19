@@ -15,9 +15,11 @@ export class TcpClient extends Socket {
 
   /**
    * TcpClient instance constructor
+   * @param {number} timeout max delay for tcp socket inactivity
    */
-  constructor() {
+  constructor(timeout:number) {
     super();
+    this.setTimeout(timeout);
     this.configure();
   }
 
@@ -28,6 +30,7 @@ export class TcpClient extends Socket {
     this.on('drain', this.drainEventHandler);
     this.on('writedata', this.writeDataEventHandler);
     this.on('data', this.dataEventHandler);
+    this.on('timeout', this.timeoutEventHandler);
   }
 
   /**
@@ -55,6 +58,17 @@ export class TcpClient extends Socket {
   private dataEventHandler(data:Buffer) {
     // build a tcpMsg with same id as current
     this.emit('tcpdata', data, (<TcpMsg> this._currentMsg).id);
+    this._sockAvailable = true;
+    if (this._msgQueue.length>0) {
+      this.emit('writedata');
+    }
+  }
+
+  /**
+   * function to handle socket timout event
+   */
+  private timeoutEventHandler() {
+    this.emit('tcptimeout', (<TcpMsg> this._currentMsg).id);
     this._sockAvailable = true;
     if (this._msgQueue.length>0) {
       this.emit('writedata');
