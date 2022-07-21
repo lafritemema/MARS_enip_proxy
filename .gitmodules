@@ -1,3 +1,4 @@
 [submodule ".\\src\\lib\\server"]
 	path = .\\src\\lib\\server
-	url = git@github.com:lafritemema/MARS_typescript_server.git
+	url = https://github.com/lafritemema/MARS_typescript_server.git
+
