@@ -9,10 +9,10 @@ import {EnipRemoteMessage,
   EnipRemoteMessageReq,
   EnipRemoteMessageRes} from '../custom/config_interfaces'; // interface for config
 import {ProxyError, TargetProtocolError} from '../proxy_error';
-import NodeCache from 'node-cache';
 import {TcpClient} from './tcp_client';
 import Logger from '@common/logger';
 import {ServerException, ServerExceptionType} from 'src/lib/server/exceptions';
+import {RequestRegister} from './register';
 
 interface TcpError extends Error {
   errno:number,
@@ -22,16 +22,21 @@ interface TcpError extends Error {
   port:number
 }
 
-interface CachePacket {
-  responseType?: string|undefined,
-  usageType: 'standard'|'tracker',
-  timer:string;
-}
 
 export interface EnipDataPacket {
   command: string,
   session: number,
   data: HandledData}
+
+
+type ResponseType = 'INT' | 'REAL' | 'STRING' | 'CRT_POSITION' | 'JNT_POSITION'
+export interface RequestData {
+  responseType: ResponseType|undefined,
+}
+
+export interface TrackerRequestData extends RequestData {
+  timer:NodeJS.Timer,
+}
 
 const MAX_CONNECT_ATTEMPT = 3;
 const CONNECT_TIMEOUT = 2000;
@@ -44,11 +49,11 @@ type CipService = keyof typeof cip.message.Service
 export class EnipClient extends EventEmitter {
   private _tcpClient:TcpClient = new TcpClient(5000);
   // private _udpClient:Socket=udp.createSocket('udp4');
+  private _reqReg:RequestRegister = new RequestRegister()
   private _dataHandler:DataHandler;
   private _enipSession:number|null;
   private _targetIp:string;
   private _targetPort:number;
-  private _cache:NodeCache = new NodeCache();
   private _connectAttempt:number;
   private _logger:Logger;
   /**
@@ -104,9 +109,9 @@ export class EnipClient extends EventEmitter {
     const enipHeader = enip.header.buildRegSession();
     const enipData = new enip.data.RegisterSession();
     const enipMessage = new EnipMessage(enipHeader, enipData);
-    this._cache.set('session', {
-      usageType: 'standard',
-    });
+
+    this._reqReg.addRequest('session', {responseType: undefined});
+
     this._tcpClient.send(enipMessage.encode(), 'session');
   }
 
@@ -116,29 +121,36 @@ export class EnipClient extends EventEmitter {
   private configureHandler() {
     // handler for TcpClient tcpdata event
     this._tcpClient.on('tcpdata', (tcpData:Buffer, requestId:string)=>{
-      const cpacket = <CachePacket> this._cache.get(requestId);
-      const enipMsg = EnipMessage.parse(tcpData);
-      let data:HandledData|undefined;
-
-      // if requestId is still registered in the cache
-      if (cpacket) {
-        // if enipMessage status state (enip header status) = true => success
+      if (this._reqReg.hasRequest(requestId)) {
+        const reqData = this._reqReg.getData(requestId);
+        const enipMsg = EnipMessage.parse(tcpData);
+        let data:HandledData|undefined;
         if (enipMsg.isSuccess) {
           // if there is a body in EnipMessage => cip message
           if (enipMsg.hasBody) {
             switch (enipMsg.command) {
               case 'SendRRData':
                 const enipbody = <enip.data.SendRRBody> enipMsg.body;
-                console.log(enipbody.data);
-                data = enipbody.data ?
-                  this._dataHandler.parse(enipbody.data, cpacket.responseType):
-                  undefined;
+                if (enipbody.data) {
+                  const responseType = reqData.responseType;
+                  if (responseType) {
+                    this._logger.debug(`REQUEST ${requestId} - parse packet returned by device`);
+                    data = this._dataHandler.parse(enipbody.data, responseType);
+                  } else {
+                    const serror = new ServerException(['SERVER', 'ENIP', 'DECODE'],
+                        ServerExceptionType.NOT_IMPLEMENTED,
+                        'no response type on request register data parsing not possible',
+                        500);
+                    this.emit('error', serror);
+                  }
+                }
                 break;
               case 'ListIdentity':
                 data = <enip.data.ListIdentityBody>enipMsg.body;
                 break;
             }
           }
+          this._logger.debug(`REQUEST ${requestId} - return result to client`);
           this.emit(requestId,
               {command: enipMsg.command,
                 session: enipMsg.session,
@@ -148,9 +160,8 @@ export class EnipClient extends EventEmitter {
           // eslint-disable-next-line max-len
           this.emit('failure', new TargetProtocolError('ERR_PROTOCOL_ENIP', 'ERROR: ENIP message transmission failure'));
         }
-        if (cpacket.usageType == 'standard') {
-          this._cache.del(requestId);
-        }
+      } else {
+        this._logger.debug(`REQUEST ${requestId} - the request status is end, no return to client`);
       }
     });
 
@@ -255,27 +266,33 @@ export class EnipClient extends EventEmitter {
       // eslint-disable-next-line max-len
       this.emit('failure', new Error('No session open for enip communication.'));
     } else {
+      // get the request definition
       const requestMsg = enipRemoteMsg.request;
+      // get the response informations if exist
       const responseMsg = enipRemoteMsg.response ?
             enipRemoteMsg.response :
             undefined;
 
-      let responseType:string|undefined;
+      // get response type
+      let responseType:ResponseType|undefined;
       if (responseMsg) {
-        responseType = responseMsg.items ?
-        responseMsg.items.type :
-        responseMsg.type;
+        // if response type is an array, get items type else get response type
+        responseType = <ResponseType>(responseMsg.items ?
+            responseMsg.items.type :
+            responseMsg.type);
       } else {
+        // if no response expected response type is undefined
         responseType = undefined;
       }
+
       try {
         // build the enip message
         const enipMessage = this.buildUCEnipMessage(requestMsg);
 
+        const reqData:RequestData = {responseType: responseType};
         // store <requestId> : <responseType> in cache
-        this._cache.set(requestId,
-            {responseType: responseType,
-              usageType: 'standard'});
+
+        this._reqReg.addRequest(requestId, reqData);
 
         // send message using TcpClient instance
         this._tcpClient.send(enipMessage.encode(), requestId);
@@ -287,11 +304,11 @@ export class EnipClient extends EventEmitter {
 
   /**
    * initialize a tracker for a remote service
-   * @param {string} requestId tracker request id
+   * @param {string} trackerId tracker request id
    * @param {EnipRemoteMessage} enipRemoteMsg object describing the message to send
    * @param {number} trackInterval time interval between each tracking request
    */
-  public initTracker(requestId:string, enipRemoteMsg:EnipRemoteMessage,
+  public initTracker(trackerId:string, enipRemoteMsg:EnipRemoteMessage,
       trackInterval: number) {
     // TODO implement new tcp write on inittracker
 
@@ -302,36 +319,37 @@ export class EnipClient extends EventEmitter {
       const requestMsg = enipRemoteMsg.request;
       const responseMsg = <EnipRemoteMessageRes>enipRemoteMsg.response;
 
-      const responseType = responseMsg.items ?
+      const responseType = <ResponseType>(responseMsg.items ?
                            responseMsg.items.type :
-                           responseMsg.type;
+                           responseMsg.type);
       try {
         const enipMessage = this.buildUCEnipMessage(requestMsg);
 
-        this._cache.set(requestId, {
+        const reqData:RequestData = {
           responseType: responseType,
-          usageType: 'tracker',
-          timer: 'running'});
+        };
+
+        this._reqReg.addTracker(trackerId, reqData);
 
         const timer = setInterval(
-            (self:EnipClient, enipBuffer:Buffer)=>{
-              switch ((<CachePacket>self._cache.get(requestId)).timer) {
-                case 'running':
-                  self._tcpClient.send(enipBuffer, requestId);
-                  break;
-                case 'clear':
+            (self:EnipClient, enipBuffer:Buffer) => {
+              console.log(`process interval with id ${trackerId}` );
+              if (this._reqReg.hasRequest(trackerId)) {
+                if (this._reqReg.isRunning(trackerId)) {
+                  self._tcpClient.send(enipBuffer, trackerId);
+                } else {
+                  this._reqReg.clearTracker(trackerId);
                   clearInterval(timer);
-                  this._cache.del(requestId);
-                  break;
+                }
+              } else {
+                // eslint-disable-next-line quotes
+                throw new Error("no tracker id");
               }
             },
             trackInterval,
             this,
             enipMessage.encode(),
         );
-        timer.unref();
-
-
         timer.ref();
       } catch (error) {
         this.emit('failure', error);
@@ -345,8 +363,8 @@ export class EnipClient extends EventEmitter {
    */
   public clearTracker(requestId:string) {
     // change the cache packet timer status
-    this._cache.set(requestId, {timer: 'clear'});
     this.removeAllListeners(requestId);
+    this._reqReg.stopTracker(requestId);
   }
 }
 
