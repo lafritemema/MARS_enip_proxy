@@ -112,15 +112,17 @@ function allRequestMW(request:Request, response:Response,
     next:()=>void) {
 // define a log object
   const logObject = {
-    api: request.baseUrl+request.path,
+    path: request.baseUrl+request.path,
     query: request.query,
     method: request.method,
     body: request.body,
   };
 
+  const uid = request.headers.uid;
+
   // LOG:
-  console.log('Request received :');
-  console.log(logObject);
+  LOGGER.info(`Request received with id ${uid}`);
+  LOGGER.debug(JSON.stringify(logObject));
   next();
 }
 
@@ -153,6 +155,7 @@ function processServerReqMW(request:Request, response:Response,
             .header({uid: requestId})
             .send({status: 'SUCCESS', data: data});
       });
+      LOGGER.info('GET informations from device');
       enipClient.sendUnconnectedMsg(requestId, remoteMessage);
       break;
     case 'PUT':
@@ -161,6 +164,7 @@ function processServerReqMW(request:Request, response:Response,
             .header({uid: requestId})
             .send({status: 'SUCCESS'});
       });
+      LOGGER.info('SET informations in device');
       enipClient.sendUnconnectedMsg(requestId, remoteMessage);
       break;
     case 'SUBSCRIBE':
@@ -197,6 +201,7 @@ function processServerReqMW(request:Request, response:Response,
           }
         });
 
+        LOGGER.info('INIT a tracker with id trackerSettings.uid');
         // init the tracker with the tracker uid
         enipClient.initTracker(trackerSettings.uid,
             remoteMessage,
@@ -220,9 +225,9 @@ function processServerReqMW(request:Request, response:Response,
  * @return {Boolean} true if object are equal else false
  */
 function isEqual(obj1:object, obj2:object) {
-  console.log(JSON.stringify(obj1));
-  console.log(JSON.stringify(obj2));
-  return JSON.stringify(obj1) == JSON.stringify(obj2);
+  const isequal = JSON.stringify(obj1) == JSON.stringify(obj2);
+  LOGGER.debug(`check : ${JSON.stringify(obj1)} EQUAL ${JSON.stringify(obj2)} => ${isequal}`);
+  return isequal;
 }
 
 /**
@@ -254,7 +259,10 @@ function buildCPacketFromTracker(trakerId:string, body:object):ConsumerPacket {
  * @return {Boolean} true if object are equal else false
  */
 function isNotEqual(obj1:object, obj2:object) {
-  return !isEqual(obj1, obj2);
+  const isnotequal = JSON.stringify(obj1) != JSON.stringify(obj2);
+  // eslint-disable-next-line max-len
+  LOGGER.debug(`check : ${JSON.stringify(obj1)} NOT EQUAL ${JSON.stringify(obj2)} => ${isnotequal}`);
+  return isnotequal;
 }
 
 /**
