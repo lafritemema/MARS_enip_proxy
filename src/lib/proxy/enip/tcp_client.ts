@@ -1,3 +1,4 @@
+import Logger from '@common/logger';
 import {Socket} from 'net';
 
 export interface TcpMsg {
@@ -9,10 +10,10 @@ export interface TcpMsg {
  * class describing a TcpClient
  */
 export class TcpClient extends Socket {
-  private _msgQueue:Array<TcpMsg>=[];
-  private _sockAvailable:Boolean=true;
+  private _msgQueue:Array<TcpMsg> = [];
+  private _sockAvailable:Boolean = true;
   private _currentMsg:TcpMsg|undefined;
-
+  private _logger = new Logger('TCPCLIENT');
   /**
    * TcpClient instance constructor
    * @param {number} timeout max delay for tcp socket inactivity
@@ -27,18 +28,9 @@ export class TcpClient extends Socket {
    * configure event handler
    */
   private configure() {
-    this.on('drain', this.drainEventHandler);
     this.on('writedata', this.writeDataEventHandler);
     this.on('data', this.dataEventHandler);
     this.on('timeout', this.timeoutEventHandler);
-  }
-
-  /**
-   * function to handle socket drain event
-   */
-  private drainEventHandler() {
-    // switch socket available to false until data reception
-    this._sockAvailable = false;
   }
 
   /**
@@ -48,7 +40,9 @@ export class TcpClient extends Socket {
     // update the currentMsg = > get the first msg in queue
     this._currentMsg = <TcpMsg> this._msgQueue.shift();
     // write it on the socket
+    this._logger.debug(`REQUEST ${(<TcpMsg> this._currentMsg).id} - send message to device`);
     this.write(this._currentMsg.data);
+    this._sockAvailable = false;
   }
 
   /**
@@ -57,9 +51,10 @@ export class TcpClient extends Socket {
   */
   private dataEventHandler(data:Buffer) {
     // build a tcpMsg with same id as current
+    this._logger.debug(`REQUEST ${(<TcpMsg> this._currentMsg).id} - read message from device`);
     this.emit('tcpdata', data, (<TcpMsg> this._currentMsg).id);
     this._sockAvailable = true;
-    if (this._msgQueue.length>0) {
+    if (this._msgQueue.length > 0) {
       this.emit('writedata');
     }
   }
@@ -69,6 +64,7 @@ export class TcpClient extends Socket {
    */
   private timeoutEventHandler() {
     this.emit('tcptimeout', (<TcpMsg> this._currentMsg).id);
+    this._logger.debug(`REQUEST ${(<TcpMsg> this._currentMsg).id} - timeout`);
     this._sockAvailable = true;
     if (this._msgQueue.length>0) {
       this.emit('writedata');
